@@ -80,9 +80,19 @@
             </svg>
           </div>
           <div>
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">MeetMars</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="brandLogoTrigger" class="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent cursor-pointer select-none" title="MeetMars Studio">MeetMars</span>
               <span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Pro Unlimited</span>
+              <!-- Logged-in User Email Pill -->
+              <div id="userSessionPill" class="hidden items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-[11px] text-slate-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span id="currentUserEmailDisplay" class="font-medium max-w-[160px] truncate">user@email.com</span>
+                <button id="logoutUserBtn" type="button" class="text-rose-400 hover:text-rose-300 ml-1 font-semibold" title="Switch Account / Logout">Logout</button>
+              </div>
+              <!-- Owner-Only Admin Dashboard Button (Hidden from regular users!) -->
+              <button id="openAdminModalBtn" type="button" class="hidden items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition shadow-sm">
+                <span>👑 Admin Panel (<span id="adminTotalUsersBadge">0</span> Users)</span>
+              </button>
             </div>
             <p class="text-[11px] text-slate-400 hidden sm:block">AI Metadata &amp; Image-to-Prompt Studio • Adobe Stock &amp; Midjourney/Flux</p>
           </div>
@@ -825,6 +835,152 @@
     </div>
   </div>
 
+  <!-- MANDATORY USER EMAIL LOGIN GATE MODAL -->
+  <div id="userLoginGateModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#070a12]/95 backdrop-blur-md p-4">
+    <div class="bg-[#0f172a] border border-indigo-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 relative overflow-hidden">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-extrabold text-white">Welcome to MeetMars Studio</h2>
+          <p class="text-xs text-slate-400">Sign in with your Name &amp; Email to access the tool</p>
+        </div>
+      </div>
+
+      <form id="userLoginForm" class="space-y-3.5 text-xs">
+        <div>
+          <label for="loginUserNameInput" class="block font-semibold text-slate-300 mb-1">Your Full Name <span class="text-rose-400">*</span></label>
+          <input id="loginUserNameInput" type="text" required placeholder="e.g., Tanvir Ahmed" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label for="loginUserEmailInput" class="block font-semibold text-slate-300 mb-1">Your Email Address <span class="text-rose-400">*</span></label>
+          <input id="loginUserEmailInput" type="email" required placeholder="e.g., yourname@gmail.com" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+        </div>
+
+
+
+        <div id="loginErrorMsg" class="hidden rounded-xl bg-rose-950/80 border border-rose-500/40 p-2.5 text-rose-200 text-[11px]"></div>
+
+        <button id="submitLoginBtn" type="submit" class="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white shadow-lg shadow-indigo-600/25 transition">
+          Continue to MeetMars Studio →
+        </button>
+      </form>
+
+      <p class="text-[10px] text-center text-slate-500">
+        Your session is remembered automatically on this browser.
+      </p>
+    </div>
+  </div>
+
+  <!-- OWNER-ONLY ADMIN DASHBOARD MODAL (HIDDEN FROM REGULAR USERS) -->
+  <div id="ownerAdminModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-[#0f172a] border border-amber-500/40 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="flex flex-wrap items-center justify-between gap-2 px-5 py-3.5 border-b border-slate-800 bg-slate-950/60">
+        <div class="flex items-center gap-2.5">
+          <span class="text-lg">👑</span>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-white">MeetMars Owner Admin Dashboard (Private)</h3>
+            <p class="text-[11px] text-amber-300/90">Only visible to you • Track every user who logs in &amp; receive instant email/sheet logs</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="exportUsersCsvBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition">
+            ↓ Download Users CSV
+          </button>
+          <button id="closeAdminModalBtn" type="button" class="text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800/70">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-5 text-xs">
+        <!-- Top Summary Metrics -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+            <span class="text-slate-400 block">Total Unique Users (Emails)</span>
+            <span id="adminStatUniqueUsers" class="text-2xl font-extrabold text-white">0</span>
+            <span class="text-[10px] text-emerald-400 block mt-0.5">Logged in on this app</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+            <span class="text-slate-400 block">Total Login Sessions</span>
+            <span id="adminStatTotalLogins" class="text-2xl font-extrabold text-indigo-300">0</span>
+            <span class="text-[10px] text-slate-400 block mt-0.5">All-time sign-in count</span>
+          </div>
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+            <span class="text-slate-400 block">Total Files Generated by Users</span>
+            <span id="adminStatFilesGenerated" class="text-2xl font-extrabold text-pink-300">0</span>
+            <span class="text-[10px] text-slate-400 block mt-0.5">Across all logged sessions</span>
+          </div>
+        </div>
+
+        <!-- Clean Owner Email Notification Status & 1-Click Test/Activate Box -->
+        <div class="rounded-xl bg-indigo-950/40 border border-indigo-500/30 p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <div>
+                <h4 class="text-xs sm:text-sm font-bold text-white">Connected Admin Email: <span class="text-indigo-300 font-mono">mdaffanel7@gmail.com</span></h4>
+                <p id="emailDeliveryStatusText" class="text-[11px] text-slate-300">যে কেউ লগইন করলেই তার নাম ও ইমেইল তোমার <strong>mdaffanel7@gmail.com</strong>-এ চলে যাবে।</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="sendTestActivationEmailBtn" type="button" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/20 transition">
+                📩 Send Test / Activate Email Now
+              </button>
+            </div>
+          </div>
+
+          <!-- Hidden/preserved inputs for backwards compatibility -->
+          <div class="hidden">
+            <input id="ownerAdminEmailInput" type="email" value="mdaffanel7@gmail.com" />
+            <input id="ownerWebhookUrlInput" type="url" value="" />
+            <input id="ownerNewPinInput" type="text" value="mars2026" />
+            <button id="saveAdminConfigBtn" type="button">Save Admin Settings</button>
+          </div>
+
+          <div id="emailActivationFeedbackBox" class="hidden rounded-xl p-3 text-xs font-medium border"></div>
+        </div>
+
+        <!-- Registered Users & Login Activity Table -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Logged-In Users Directory &amp; Activity</h4>
+            <button id="clearUsersLogBtn" type="button" class="text-[11px] text-rose-400 hover:text-rose-300 px-2.5 py-1 rounded bg-slate-900 border border-slate-800">
+              Clear Log
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-800 bg-slate-900/90 text-slate-400 text-[11px] uppercase">
+                  <th class="py-2.5 px-3">#</th>
+                  <th class="py-2.5 px-3">User Name</th>
+                  <th class="py-2.5 px-3">Email Address</th>
+                  <th class="py-2.5 px-3">Logins</th>
+                  <th class="py-2.5 px-3">Files Processed</th>
+                  <th class="py-2.5 px-3">Last Active Time</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody" class="divide-y divide-slate-800/70 text-slate-200">
+                <tr>
+                  <td colspan="6" class="py-6 text-center text-slate-500">No users logged in yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 
@@ -976,6 +1132,403 @@
     // =========================================================================
     // INITIALIZE SETTINGS & UI LISTENERS
     // =========================================================================
+    // =========================================================================
+    // USER EMAIL LOGIN GATE & OWNER-ONLY ADMIN TRACKING ENGINE
+    // =========================================================================
+    // NOTE FOR APP OWNER: Put your own Gmail address inside OWNER_ADMIN_EMAIL below
+    // so that whenever ANY user logs in from ANY device, their Name & Email are sent to you!
+    const DEFAULT_OWNER_CONFIG = {
+      OWNER_ADMIN_EMAIL: 'mdaffanel7@gmail.com', // Owner Admin Email permanently configured
+      OWNER_WEBHOOK_URL: '',
+      ADMIN_SECRET_PIN: 'mars2026'
+    };
+
+    const userAuthState = {
+      currentUser: null, // { name, email, isAdmin, loginTime }
+      usersLog: [], // [ { name, email, loginCount, filesProcessed, firstSeen, lastSeen, userAgent } ]
+      ownerEmail: DEFAULT_OWNER_CONFIG.OWNER_ADMIN_EMAIL,
+      webhookUrl: DEFAULT_OWNER_CONFIG.OWNER_WEBHOOK_URL,
+      adminPin: DEFAULT_OWNER_CONFIG.ADMIN_SECRET_PIN
+    };
+
+    function initUserAuthAndAdmin() {
+      // Load saved owner config & users log (Defaulting to mdaffanel7@gmail.com)
+      userAuthState.ownerEmail = loadLocal('meetmars_owner_email', DEFAULT_OWNER_CONFIG.OWNER_ADMIN_EMAIL) || 'mdaffanel7@gmail.com';
+      userAuthState.webhookUrl = loadLocal('meetmars_owner_webhook', DEFAULT_OWNER_CONFIG.OWNER_WEBHOOK_URL);
+      userAuthState.adminPin = loadLocal('meetmars_admin_pin', DEFAULT_OWNER_CONFIG.ADMIN_SECRET_PIN) || 'mars2026';
+
+      try {
+        const rawLog = loadLocal('meetmars_users_log_v1', '[]');
+        userAuthState.usersLog = JSON.parse(rawLog) || [];
+      } catch (e) {
+        userAuthState.usersLog = [];
+      }
+
+      try {
+        const rawSession = loadLocal('meetmars_active_user_v1', '');
+        if (rawSession) {
+          userAuthState.currentUser = JSON.parse(rawSession);
+        }
+      } catch (e) {
+        userAuthState.currentUser = null;
+      }
+
+      // Populate Admin inputs
+      const ownerEmailInp = document.getElementById('ownerAdminEmailInput');
+      const ownerHookInp = document.getElementById('ownerWebhookUrlInput');
+      const ownerPinInp = document.getElementById('ownerNewPinInput');
+      if (ownerEmailInp) ownerEmailInp.value = userAuthState.ownerEmail;
+      if (ownerHookInp) ownerHookInp.value = userAuthState.webhookUrl;
+      if (ownerPinInp) ownerPinInp.value = userAuthState.adminPin;
+
+      // Handle Login Form Submit (Admin is unlocked ONLY when logging in with mdaffanel7@gmail.com)
+      document.getElementById('userLoginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nameVal = document.getElementById('loginUserNameInput').value.trim();
+        const emailVal = document.getElementById('loginUserEmailInput').value.trim().toLowerCase();
+        const errBox = document.getElementById('loginErrorMsg');
+
+        if (!nameVal || !emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+          errBox.textContent = 'Please enter a valid Name and Email address to continue.';
+          errBox.classList.remove('hidden');
+          return;
+        }
+        errBox.classList.add('hidden');
+
+        const isOwnerAdmin =
+          emailVal === 'mdaffanel7@gmail.com' ||
+          (userAuthState.ownerEmail && emailVal === userAuthState.ownerEmail.toLowerCase());
+
+        const nowStr = new Date().toLocaleString();
+        userAuthState.currentUser = {
+          name: nameVal,
+          email: emailVal,
+          isAdmin: isOwnerAdmin,
+          loginTime: nowStr
+        };
+        saveLocal('meetmars_active_user_v1', JSON.stringify(userAuthState.currentUser));
+
+        // Record in Users Directory
+        let existing = userAuthState.usersLog.find(u => u.email === emailVal);
+        if (existing) {
+          existing.name = nameVal || existing.name;
+          existing.loginCount = (existing.loginCount || 1) + 1;
+          existing.lastSeen = nowStr;
+        } else {
+          existing = {
+            name: nameVal,
+            email: emailVal,
+            loginCount: 1,
+            filesProcessed: 0,
+            firstSeen: nowStr,
+            lastSeen: nowStr,
+            device: navigator.platform || 'Web Browser'
+          };
+          userAuthState.usersLog.unshift(existing);
+        }
+        saveLocal('meetmars_users_log_v1', JSON.stringify(userAuthState.usersLog));
+
+        // Send remote notification to Owner Email / Webhook in background
+        sendLoginNotificationToOwner(existing);
+
+        updateUserSessionUI();
+        closeLoginGateModal();
+        showToast(`Welcome, ${nameVal}!`, 'success');
+      });
+
+      // Logout button
+      document.getElementById('logoutUserBtn').addEventListener('click', () => {
+        userAuthState.currentUser = null;
+        saveLocal('meetmars_active_user_v1', '');
+        updateUserSessionUI();
+        openLoginGateModal();
+      });
+
+      // Open / Close Admin Modal
+      document.getElementById('openAdminModalBtn').addEventListener('click', openOwnerAdminModal);
+      document.getElementById('closeAdminModalBtn').addEventListener('click', () => {
+        const m = document.getElementById('ownerAdminModal');
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+      });
+
+      // Secret Owner Shortcut: Ctrl + Shift + A or 5 clicks on MeetMars logo
+      window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+          e.preventDefault();
+          promptAndOpenAdminModal();
+        }
+      });
+
+      let logoClicks = 0;
+      let logoTimer = null;
+      document.getElementById('brandLogoTrigger').addEventListener('click', () => {
+        logoClicks++;
+        clearTimeout(logoTimer);
+        logoTimer = setTimeout(() => { logoClicks = 0; }, 1800);
+        if (logoClicks >= 5) {
+          logoClicks = 0;
+          promptAndOpenAdminModal();
+        }
+      });
+
+      // Save Admin Config
+      document.getElementById('saveAdminConfigBtn').addEventListener('click', () => {
+        userAuthState.ownerEmail = document.getElementById('ownerAdminEmailInput').value.trim();
+        userAuthState.webhookUrl = document.getElementById('ownerWebhookUrlInput').value.trim();
+        userAuthState.adminPin = document.getElementById('ownerNewPinInput').value.trim() || 'mars2026';
+        saveLocal('meetmars_owner_email', userAuthState.ownerEmail);
+        saveLocal('meetmars_owner_webhook', userAuthState.webhookUrl);
+        saveLocal('meetmars_admin_pin', userAuthState.adminPin);
+        showToast('Owner Admin settings saved!', 'success');
+      });
+
+      // Export Users CSV
+      document.getElementById('exportUsersCsvBtn').addEventListener('click', () => {
+        if (userAuthState.usersLog.length === 0) {
+          showToast('No users logged in yet', 'info');
+          return;
+        }
+        const headers = ['Name', 'Email', 'Total Logins', 'Files Processed', 'First Seen', 'Last Active'];
+        const rows = userAuthState.usersLog.map(u => [
+          escapeCsvCell(u.name),
+          escapeCsvCell(u.email),
+          escapeCsvCell(u.loginCount || 1),
+          escapeCsvCell(u.filesProcessed || 0),
+          escapeCsvCell(u.firstSeen || ''),
+          escapeCsvCell(u.lastSeen || '')
+        ]);
+        const csv = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `MeetMars_Users_List_${userAuthState.usersLog.length}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Downloaded Users CSV!', 'success');
+      });
+
+      // Send Test / Activate Email Button
+      const testEmailBtn = document.getElementById('sendTestActivationEmailBtn');
+      if (testEmailBtn) {
+        testEmailBtn.addEventListener('click', () => {
+          const sampleEntry = userAuthState.currentUser || {
+            name: 'MeetMars Owner Test',
+            email: 'mdaffanel7@gmail.com',
+            loginCount: 1,
+            lastSeen: new Date().toLocaleString()
+          };
+          sendLoginNotificationToOwner(sampleEntry, true);
+        });
+      }
+
+      // Clear Users Log
+      document.getElementById('clearUsersLogBtn').addEventListener('click', () => {
+        userAuthState.usersLog = [];
+        saveLocal('meetmars_users_log_v1', '[]');
+        renderAdminDashboardTable();
+        showToast('Cleared users log', 'info');
+      });
+
+      // Check if user is logged in; if not, show mandatory login modal
+      if (!userAuthState.currentUser || !userAuthState.currentUser.email) {
+        openLoginGateModal();
+      } else {
+        updateUserSessionUI();
+      }
+    }
+
+    function openLoginGateModal() {
+      const m = document.getElementById('userLoginGateModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeLoginGateModal() {
+      const m = document.getElementById('userLoginGateModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function promptAndOpenAdminModal() {
+      if (userAuthState.currentUser && (userAuthState.currentUser.isAdmin || userAuthState.currentUser.email === 'mdaffanel7@gmail.com')) {
+        openOwnerAdminModal();
+        return;
+      }
+      showToast('Sign in with your Owner Email (mdaffanel7@gmail.com) to access Admin Panel', 'info');
+    }
+
+    function openOwnerAdminModal() {
+      renderAdminDashboardTable();
+      const m = document.getElementById('ownerAdminModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function updateUserSessionUI() {
+      const pill = document.getElementById('userSessionPill');
+      const emailSpan = document.getElementById('currentUserEmailDisplay');
+      const adminBtn = document.getElementById('openAdminModalBtn');
+      const adminCount = document.getElementById('adminTotalUsersBadge');
+
+      if (adminCount) adminCount.textContent = userAuthState.usersLog.length;
+
+      if (userAuthState.currentUser && userAuthState.currentUser.email) {
+        pill.classList.remove('hidden');
+        pill.classList.add('flex');
+        emailSpan.textContent = `${userAuthState.currentUser.name} (${userAuthState.currentUser.email})`;
+
+        if (userAuthState.currentUser.isAdmin) {
+          adminBtn.classList.remove('hidden');
+          adminBtn.classList.add('flex');
+        } else {
+          adminBtn.classList.add('hidden');
+          adminBtn.classList.remove('flex');
+        }
+      } else {
+        pill.classList.add('hidden');
+        pill.classList.remove('flex');
+        adminBtn.classList.add('hidden');
+        adminBtn.classList.remove('flex');
+      }
+    }
+
+    function incrementCurrentUserFilesProcessed(count = 1) {
+      if (!userAuthState.currentUser || !userAuthState.currentUser.email) return;
+      const u = userAuthState.usersLog.find(x => x.email === userAuthState.currentUser.email);
+      if (u) {
+        u.filesProcessed = (u.filesProcessed || 0) + count;
+        u.lastSeen = new Date().toLocaleString();
+        saveLocal('meetmars_users_log_v1', JSON.stringify(userAuthState.usersLog));
+      }
+    }
+
+    function renderAdminDashboardTable() {
+      const tbody = document.getElementById('adminUsersTableBody');
+      const uniqueEl = document.getElementById('adminStatUniqueUsers');
+      const loginsEl = document.getElementById('adminStatTotalLogins');
+      const filesEl = document.getElementById('adminStatFilesGenerated');
+      const badgeEl = document.getElementById('adminTotalUsersBadge');
+
+      const list = userAuthState.usersLog || [];
+      const totalLogins = list.reduce((acc, u) => acc + (u.loginCount || 1), 0);
+      const totalFiles = list.reduce((acc, u) => acc + (u.filesProcessed || 0), 0);
+
+      if (uniqueEl) uniqueEl.textContent = list.length;
+      if (loginsEl) loginsEl.textContent = totalLogins;
+      if (filesEl) filesEl.textContent = totalFiles;
+      if (badgeEl) badgeEl.textContent = list.length;
+
+      if (!tbody) return;
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No users have logged in yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((u, idx) => `
+        <tr class="hover:bg-slate-900/60 transition">
+          <td class="py-2.5 px-3 font-mono text-slate-500">${idx + 1}</td>
+          <td class="py-2.5 px-3 font-semibold text-white">${escapeHtml(u.name || '-')}</td>
+          <td class="py-2.5 px-3 font-mono text-indigo-300">${escapeHtml(u.email)}</td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold">${u.loginCount || 1}x</span></td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-bold">${u.filesProcessed || 0} files</span></td>
+          <td class="py-2.5 px-3 text-slate-400 text-[11px]">${escapeHtml(u.lastSeen || '')}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function sendLoginNotificationToOwner(userEntry, isManualTest = false) {
+      const targetOwnerEmail = 'mdaffanel7@gmail.com';
+      const fbBox = document.getElementById('emailActivationFeedbackBox');
+
+      if (isManualTest && fbBox) {
+        fbBox.classList.remove('hidden');
+        fbBox.className = 'rounded-xl p-3 text-xs font-medium border bg-slate-900 border-slate-700 text-slate-200';
+        fbBox.textContent = 'Sending test / activation email to mdaffanel7@gmail.com...';
+      }
+
+      const formData = new FormData();
+      formData.append('_subject', `New MeetMars User Login: ${userEntry.name} (${userEntry.email})`);
+      formData.append('App_Name', 'MeetMars Studio');
+      formData.append('User_Name', userEntry.name);
+      formData.append('User_Email', userEntry.email);
+      formData.append('Total_Logins', String(userEntry.loginCount || 1));
+      formData.append('Login_Time', userEntry.lastSeen || new Date().toLocaleString());
+      formData.append('_captcha', 'false');
+      formData.append('_template', 'table');
+
+      try {
+        const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetOwnerEmail)}`, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: formData
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (fbBox && (isManualTest || data.message)) {
+          fbBox.classList.remove('hidden');
+          const msgStr = String(data.message || '');
+          if (/activate|activation/i.test(msgStr)) {
+            fbBox.className = 'rounded-xl p-3 text-xs font-medium border bg-amber-950/80 border-amber-500/40 text-amber-200';
+            fbBox.innerHTML = `✅ <strong>অ্যাক্টিভেশন মেইল পাঠানো হয়েছে!</strong> এখন তোমার <strong>mdaffanel7@gmail.com</strong> জিমেইলের Inbox বা <strong>Spam</strong> ফোল্ডার চেক করো এবং FormSubmit-এর মেইলে থাকা <strong>"Activate Form"</strong> বাটনে ১ বার ক্লিক করো।`;
+          } else if (res.ok && (data.success === 'true' || data.success === true)) {
+            fbBox.className = 'rounded-xl p-3 text-xs font-medium border bg-emerald-950/80 border-emerald-500/40 text-emerald-200';
+            fbBox.innerHTML = `✅ <strong>সফলভাবে মেইল চলে গেছে!</strong> তোমার <strong>mdaffanel7@gmail.com</strong> জিমেইলের Inbox (অথবা Spam ফোল্ডার) চেক করো।`;
+          } else {
+            // If running inside a restricted preview iframe or local file://, provide 1-click direct browser activation form
+            fbBox.className = 'rounded-xl p-3 text-xs font-medium border bg-indigo-950/80 border-indigo-500/40 text-indigo-200';
+            fbBox.innerHTML = `ℹ️ ব্রাউজারের প্রিভিউ মোডে মেইল ব্লক হতে পারে। ওয়েবসাইটটি লাইভ লিংকে (Netlify/GitHub) আপলোড করলে অটোমেটিক মেইল যাবে, অথবা এখনই অ্যাক্টিভেট করতে <button type="button" id="directFormSubmitFallbackBtn" class="underline font-bold text-white ml-1">এখানে ক্লিক করো →</button>`;
+            const dBtn = document.getElementById('directFormSubmitFallbackBtn');
+            if (dBtn) {
+              dBtn.onclick = () => triggerDirectFormPost(targetOwnerEmail, userEntry);
+            }
+          }
+        }
+      } catch (e) {
+        if (isManualTest && fbBox) {
+          fbBox.classList.remove('hidden');
+          fbBox.className = 'rounded-xl p-3 text-xs font-medium border bg-indigo-950/80 border-indigo-500/40 text-indigo-200';
+          fbBox.innerHTML = `ℹ️ প্রিভিউ বক্স থেকে সরাসরি মেইল পাঠাতে <button type="button" id="directFormSubmitFallbackBtn" class="px-2.5 py-1 rounded bg-emerald-600 text-white font-bold ml-1">এখানে ১ ক্লিক করে ইমেইল অ্যাক্টিভেট করো →</button>`;
+          const dBtn = document.getElementById('directFormSubmitFallbackBtn');
+          if (dBtn) {
+            dBtn.onclick = () => triggerDirectFormPost(targetOwnerEmail, userEntry);
+          }
+        }
+      }
+    }
+
+    function triggerDirectFormPost(targetOwnerEmail, userEntry) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `https://formsubmit.co/${encodeURIComponent(targetOwnerEmail)}`;
+      form.target = '_blank';
+
+      const fields = {
+        _subject: `MeetMars Login Notification (${userEntry.email})`,
+        User_Name: userEntry.name || 'Admin Test',
+        User_Email: userEntry.email || targetOwnerEmail,
+        Login_Time: new Date().toLocaleString(),
+        _captcha: 'false',
+        _template: 'table'
+      };
+
+      Object.entries(fields).forEach(([k, v]) => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = k;
+        inp.value = v;
+        form.appendChild(inp);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+    }
+
+
     function initApp() {
       // Load saved API key & preferences
       state.apiKey = loadLocal('pixcraft_gemini_api_key', '');
@@ -1423,6 +1976,7 @@
 
       updatePlatformUI();
       renderWorkspace();
+      initUserAuthAndAdmin();
     }
 
     function updatePlatformUI() {
@@ -2671,6 +3225,7 @@ Return ONLY valid JSON matching this exact schema:
       item.qualityScore = computeItemQualityScore(item);
       item.status = 'done';
       item.errorMsg = '';
+      incrementCurrentUserFilesProcessed(1);
 
       appendPerfLog(`✓ ${item.name} processed in ${item.latencyMs}ms via ${usedModel} (Score: ${item.qualityScore}%, ${cleanKws.length} tags, ${duplicatesRemoved} dups removed)`);
     }
