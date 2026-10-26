@@ -1,0 +1,3497 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeetMars — Unlimited Adobe Stock Metadata Generator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    input[type="range"] {
+      accent-color: #6366f1;
+    }
+    .drop-active {
+      border-color: #6366f1 !important;
+      background-color: rgba(99, 102, 241, 0.12) !important;
+    }
+  </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col bg-[#0b0f19] text-slate-100 selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navigation Header (Fixed at top, never overlapped by sidebar scroll) -->
+  <header class="shrink-0 z-40 border-b border-slate-800/90 bg-[#0b0f19] px-4 lg:px-6 py-2.5">
+    <div class="max-w-[1600px] mx-auto flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2.5">
+      <!-- Left: Brand Logo & Name -->
+      <div class="flex items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-3">
+          <button id="mobileSidebarBtn" type="button" class="lg:hidden p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700" title="Toggle Customization Sidebar">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">MeetMars</span>
+              <span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Pro Unlimited</span>
+            </div>
+            <p class="text-[11px] text-slate-400 hidden sm:block">AI Metadata &amp; Image-to-Prompt Studio • Adobe Stock &amp; Midjourney/Flux</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side Control Panel: Model, Speed, Set API Key, Stats, Quality & Analytics, Validate CSV, File format, Download CSV -->
+      <div class="flex flex-col sm:items-end gap-2">
+        <!-- Row 1 on Right: Model, Speed, Set API Key, Quick Stats -->
+        <div class="flex flex-wrap items-center xl:justify-end gap-2">
+          <!-- Gemini Model Selector -->
+          <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs">
+            <span class="text-slate-400 mr-1.5 hidden sm:inline">Model:</span>
+            <select id="modelSelect" class="bg-transparent text-slate-200 font-medium focus:outline-none cursor-pointer">
+              <option value="gemini-3.5-flash-lite" class="bg-slate-900" selected>Gemini 3.5 Flash-Lite (Highest Quota + Auto-Rotate)</option>
+              <option value="gemini-3.1-flash-lite" class="bg-slate-900">Gemini 3.1 Flash-Lite (High Quota + Auto-Rotate)</option>
+              <option value="gemini-3.6-flash" class="bg-slate-900">Gemini 3.6 Flash (Stable + Auto-Rotate)</option>
+              <option value="gemini-3-flash-preview" class="bg-slate-900">Gemini 3 Flash Preview (+ Auto-Rotate)</option>
+              <option value="gemini-3.8-flash" class="bg-slate-900">Gemini 3.8 Flash (+ Auto-Rotate)</option>
+              <option value="gemini-3.1-pro-preview" class="bg-slate-900">Gemini 3.1 Pro Preview (+ Auto-Rotate)</option>
+              <option value="gemini-4-argon" class="bg-slate-900">Gemini 4 Argon (Flagship Pro)</option>
+              <option value="gemini-2.5-flash" class="bg-slate-900">Gemini 2.5 Flash (Legacy Accounts)</option>
+              <option value="gemini-2.5-pro" class="bg-slate-900">Gemini 2.5 Pro (Legacy Accounts)</option>
+            </select>
+          </div>
+
+          <!-- Paid API Parallel Speed -->
+          <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1.5 text-xs" title="Paid Gemini API allows parallel requests for much faster batch generation">
+            <span class="text-slate-400 mr-1.5 hidden md:inline">Speed:</span>
+            <select id="concurrencySelect" class="bg-transparent text-indigo-300 font-semibold focus:outline-none cursor-pointer">
+              <option value="3" class="bg-slate-900" selected>3x Parallel (Paid Safe)</option>
+              <option value="5" class="bg-slate-900">5x Turbo (Paid API)</option>
+              <option value="8" class="bg-slate-900">8x Ultra (Paid Tier 2+)</option>
+              <option value="1" class="bg-slate-900">1x Sequential</option>
+            </select>
+          </div>
+
+          <!-- Set API Key Button -->
+          <button id="openApiKeyModalBtn" type="button" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold border border-indigo-500/40 bg-slate-900/95 hover:bg-slate-800 text-slate-100 shadow-sm transition">
+            <span id="apiKeyStatusDot" class="w-2 h-2 rounded-full bg-rose-500"></span>
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+            </svg>
+            <span id="apiKeyStatusText">Set API Key</span>
+          </button>
+
+          <!-- Quick Stats Pill -->
+          <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
+            <div class="flex items-center gap-1 pr-2.5 border-r border-slate-800">
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+              <span class="text-slate-400">Total:</span>
+              <span id="statTotal" class="font-bold text-white">0</span>
+            </div>
+            <div class="flex items-center gap-1 px-2.5 border-r border-slate-800">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="text-slate-400">Ready:</span>
+              <span id="statDone" class="font-bold text-emerald-400">0</span>
+            </div>
+            <div class="flex items-center gap-1 px-2.5 border-r border-slate-800">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              <span class="text-slate-400">Queue:</span>
+              <span id="statPending" class="font-bold text-amber-400">0</span>
+            </div>
+            <div class="flex items-center gap-1 pl-2.5">
+              <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+              <span class="text-slate-400">Failed:</span>
+              <span id="statFailed" class="font-bold text-rose-400">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2 on Right: Quality & Analytics, Validate CSV, File format, Download Adobe Stock CSV -->
+        <div class="flex flex-wrap items-center xl:justify-end gap-2">
+          <!-- Quality Dashboard & History Toggle Button -->
+          <button id="toggleDashboardBtn" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-purple-500/40 bg-purple-500/15 hover:bg-purple-500/25 text-purple-200 transition" title="Toggle Metadata Quality Dashboard, Performance Tracking & Correction History">
+            <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Quality &amp; Analytics</span>
+            <span id="headerAvgScoreBadge" class="px-1.5 py-0.2 rounded bg-purple-600 text-white text-[10px] font-bold">--%</span>
+          </button>
+
+          <!-- Pre-Export CSV Validation Button -->
+          <button id="openCsvValidatorBtn" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 transition" title="Run Adobe Stock CSV Validation & Similarity Check">
+            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Validate CSV</span>
+          </button>
+
+          <!-- File Format Dropdown (PixCraftAI Style) -->
+          <div class="flex items-center gap-1.5 bg-slate-900 border border-indigo-500/40 hover:border-indigo-400 rounded-lg px-2.5 py-1.5 text-xs shadow-sm transition" title="Change file extension (.eps, .ai, .psd, .mp4, .jpg, .png) for exported CSV filenames">
+            <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <select id="headerFileFormatSelect" aria-label="File format" class="bg-transparent text-indigo-300 font-semibold focus:outline-none cursor-pointer">
+              <option value="keep" class="bg-slate-900 text-slate-200">File format</option>
+              <option value=".eps" class="bg-slate-900 text-slate-200">.eps</option>
+              <option value=".ai" class="bg-slate-900 text-slate-200">.ai</option>
+              <option value=".psd" class="bg-slate-900 text-slate-200">.psd</option>
+              <option value=".mp4" class="bg-slate-900 text-slate-200">.mp4</option>
+              <option value=".jpg" class="bg-slate-900 text-slate-200">.jpg</option>
+              <option value=".png" class="bg-slate-900 text-slate-200">.png</option>
+              <option value=".svg" class="bg-slate-900 text-slate-200">.svg</option>
+            </select>
+          </div>
+
+          <!-- Download CSV Button -->
+          <button id="downloadCsvBtn" type="button" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 transition disabled:opacity-40 disabled:cursor-not-allowed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span id="downloadCsvBtnLabel">Download Adobe Stock CSV</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Container (Independent Split Scroll Panels: Left Sidebar & Right Main Panel scroll independently on hover) -->
+  <div class="flex-1 min-h-0 flex max-w-[1600px] w-full mx-auto relative overflow-hidden">
+
+    <!-- Left Customization Sidebar (Independent Scroll Container) -->
+    <aside id="customizationSidebar" class="w-80 shrink-0 h-full border-r border-slate-800/80 bg-[#0d1322] p-4 overflow-y-auto overscroll-contain fixed lg:static inset-y-0 left-0 z-30 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+          </svg>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-200">Metadata Customization</h2>
+        </div>
+        <div class="flex items-center gap-1">
+          <button id="resetSettingsBtn" type="button" class="text-[11px] text-slate-400 hover:text-indigo-400 px-2 py-0.5 rounded bg-slate-800/70" title="Reset sliders and toggles to default">Reset</button>
+          <button id="closeSidebarMobileBtn" type="button" class="lg:hidden p-1 text-slate-400 hover:text-white">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sliders Group -->
+      <div class="space-y-4 text-xs">
+        <!-- Min Title Words -->
+        <div class="bg-slate-900/70 border border-slate-800/90 rounded-xl p-3">
+          <div class="flex justify-between items-center mb-1.5">
+            <label for="minTitleWords" class="text-slate-300 font-medium">Min Title Words</label>
+            <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold"><span id="minTitleWordsVal">8</span> words</span>
+          </div>
+          <input id="minTitleWords" type="range" min="3" max="25" value="8" class="w-full cursor-pointer" />
+        </div>
+
+        <!-- Max Title Words -->
+        <div class="bg-slate-900/70 border border-slate-800/90 rounded-xl p-3">
+          <div class="flex justify-between items-center mb-1.5">
+            <label for="maxTitleWords" class="text-slate-300 font-medium">Max Title Words</label>
+            <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold"><span id="maxTitleWordsVal">16</span> words</span>
+          </div>
+          <input id="maxTitleWords" type="range" min="5" max="35" value="16" class="w-full cursor-pointer" />
+        </div>
+
+        <!-- Min Keywords -->
+        <div class="bg-slate-900/70 border border-slate-800/90 rounded-xl p-3">
+          <div class="flex justify-between items-center mb-1.5">
+            <label for="minKeywords" class="text-slate-300 font-medium">Min Keywords</label>
+            <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold"><span id="minKeywordsVal">30</span> keywords</span>
+          </div>
+          <input id="minKeywords" type="range" min="10" max="49" value="30" class="w-full cursor-pointer" />
+        </div>
+
+        <!-- Max Keywords -->
+        <div class="bg-slate-900/70 border border-slate-800/90 rounded-xl p-3">
+          <div class="flex justify-between items-center mb-1.5">
+            <label for="maxKeywords" class="text-slate-300 font-medium">Max Keywords (Max 49)</label>
+            <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold"><span id="maxKeywordsVal">45</span> keywords</span>
+          </div>
+          <input id="maxKeywords" type="range" min="15" max="49" value="45" class="w-full cursor-pointer" />
+        </div>
+
+        <!-- Min & Max Description Words -->
+        <div class="bg-slate-900/70 border border-slate-800/90 rounded-xl p-3 space-y-2.5">
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label for="minDescWords" class="text-slate-300 font-medium">Min Description Words</label>
+              <span class="text-indigo-300 font-semibold"><span id="minDescWordsVal">12</span> words</span>
+            </div>
+            <input id="minDescWords" type="range" min="5" max="30" value="12" class="w-full cursor-pointer" />
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label for="maxDescWords" class="text-slate-300 font-medium">Max Description Words</label>
+              <span class="text-indigo-300 font-semibold"><span id="maxDescWordsVal">25</span> words</span>
+            </div>
+            <input id="maxDescWords" type="range" min="10" max="60" value="25" class="w-full cursor-pointer" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS Toggles (PixCraftAI Exact Toggles) -->
+      <div class="mt-5 pt-4 border-t border-slate-800">
+        <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">Settings</h3>
+        <div class="space-y-2 text-xs">
+          <!-- Single Word Keywords -->
+          <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition">
+            <span class="font-medium text-slate-200">SINGLE WORD KEYWORDS</span>
+            <input id="toggleSingleWord" type="checkbox" class="sr-only peer" />
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-indigo-600"></div>
+          </label>
+
+          <!-- White Background -->
+          <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition">
+            <span class="font-medium text-slate-200">WHITE BACKGROUND</span>
+            <input id="toggleWhiteBg" type="checkbox" class="sr-only peer" />
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-indigo-600"></div>
+          </label>
+
+          <!-- Transparent Background -->
+          <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition">
+            <span class="font-medium text-slate-200">TRANSPARENT BACKGROUND</span>
+            <input id="toggleTransBg" type="checkbox" class="sr-only peer" />
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-indigo-600"></div>
+          </label>
+
+          <!-- Silhouette -->
+          <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition">
+            <span class="font-medium text-slate-200">SILHOUETTE</span>
+            <input id="toggleSilhouette" type="checkbox" class="sr-only peer" />
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-indigo-600"></div>
+          </label>
+
+          <!-- Custom Prompt Toggle & Drawer -->
+          <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-2.5">
+            <label class="flex items-center justify-between cursor-pointer">
+              <span class="font-medium text-slate-200">CUSTOM PROMPT</span>
+              <input id="toggleCustomPrompt" type="checkbox" class="sr-only peer" />
+              <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-indigo-600"></div>
+            </label>
+            <div id="customPromptBox" class="hidden mt-2.5 pt-2 border-t border-slate-800">
+              <textarea id="customPromptInput" rows="2" placeholder="e.g., Focus on commercial business concepts, minimal aesthetic, holiday theme..." class="w-full rounded-lg bg-slate-950 border border-slate-700 p-2 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none"></textarea>
+            </div>
+          </div>
+
+          <!-- Prohibited Words Toggle & Drawer -->
+          <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-2.5">
+            <label class="flex items-center justify-between cursor-pointer">
+              <span class="font-medium text-slate-200">PROHIBITED WORDS</span>
+              <input id="toggleProhibitedWords" type="checkbox" class="sr-only peer" checked />
+              <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-indigo-600"></div>
+            </label>
+            <div id="prohibitedWordsBox" class="mt-2.5 pt-2 border-t border-slate-800">
+              <input id="prohibitedWordsInput" type="text" value="nike, apple, adidas, disney, marvel, Midjourney, AI generated, 8k, photorealistic" placeholder="Comma-separated banned words" class="w-full rounded-lg bg-slate-950 border border-slate-700 p-2 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+              <p class="text-[10px] text-slate-400 mt-1">Automatically strips brand names & forbidden tags.</p>
+            </div>
+          </div>
+
+          <!-- Title Prefix / Suffix -->
+          <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-2.5 space-y-2">
+            <span class="font-medium text-slate-300 block">TITLE PREFIX / SUFFIX (OPTIONAL)</span>
+            <div class="grid grid-cols-2 gap-2">
+              <input id="titlePrefixInput" type="text" placeholder="Prefix..." class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+              <input id="titleSuffixInput" type="text" placeholder="Suffix..." class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <!-- CSV Extension Override (Important for EPS/AI/Vector contributors) -->
+          <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-2.5">
+            <label for="csvExtensionSelect" class="font-medium text-slate-300 block mb-1">CSV FILENAME EXTENSION</label>
+            <select id="csvExtensionSelect" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2 py-1.5 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none">
+              <option value="keep">File format (Keep Original)</option>
+              <option value=".eps">.eps (Vector EPS)</option>
+              <option value=".ai">.ai (Adobe Illustrator)</option>
+              <option value=".psd">.psd (Photoshop PSD)</option>
+              <option value=".mp4">.mp4 (Video MP4)</option>
+              <option value=".jpg">.jpg (JPEG Image)</option>
+              <option value=".png">.png (PNG Image)</option>
+              <option value=".svg">.svg (SVG Vector)</option>
+            </select>
+            <p class="text-[10px] text-slate-400 mt-1">Tip: If uploading JPG previews for Adobe Stock vectors, select "Force .eps in CSV".</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMAGE TO PROMPT CUSTOMIZATION SETTINGS (UPGRADED WITH ORIGINALITY & 5 PROMPT MODES) -->
+      <div class="mt-5 pt-4 border-t border-slate-800">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-[11px] font-bold uppercase tracking-wider text-pink-400">Image-to-Prompt Studio</h3>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-pink-500/15 text-pink-300 border border-pink-500/30 font-semibold">Originality AI</span>
+        </div>
+        <div class="space-y-2.5 text-xs">
+          <!-- Feature 4: 5 Multiple Prompt Modes (Default: original-variation for Adobe Stock) -->
+          <div class="rounded-xl bg-slate-900/60 border border-pink-500/30 p-2.5">
+            <label for="promptModeSelect" class="font-semibold text-pink-300 block mb-1">PROMPT GENERATION MODE</label>
+            <select id="promptModeSelect" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2 py-1.5 text-xs text-slate-100 focus:border-pink-500 focus:outline-none">
+              <option value="original-variation" selected>Original Variation (Adobe Stock Default)</option>
+              <option value="stock-vector">Adobe Stock Vector (Clean Commercial)</option>
+              <option value="photo-realistic">Photo-Realistic (Camera &amp; Lighting)</option>
+              <option value="pattern-background">Pattern / Background (Seamless / Copy Space)</option>
+              <option value="faithful-description">Faithful Description (Visible Features)</option>
+            </select>
+            <p class="text-[10px] text-slate-400 mt-1">Original Variation creates a new commercial concept (not just color/crop change) for Adobe Stock safety.</p>
+          </div>
+
+          <!-- Target Output Style -->
+          <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-2.5">
+            <label for="img2PromptStyleSelect" class="font-medium text-slate-300 block mb-1">TARGET OUTPUT STYLE</label>
+            <select id="img2PromptStyleSelect" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2 py-1.5 text-xs text-slate-200 focus:border-pink-500 focus:outline-none">
+              <option value="Minimal flat vector illustration">Minimal flat vector illustration</option>
+              <option value="Photorealistic image" selected>Photorealistic commercial image</option>
+              <option value="3D render">3D render / isometric design</option>
+              <option value="Seamless pattern or background">Seamless pattern or background</option>
+              <option value="Editorial illustration">Editorial &amp; commercial illustration</option>
+            </select>
+          </div>
+
+          <!-- Target AI Generator Tool -->
+          <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-2.5">
+            <label for="img2PromptTargetSelect" class="font-medium text-slate-300 block mb-1">TARGET AI GENERATOR</label>
+            <select id="img2PromptTargetSelect" class="w-full rounded-lg bg-slate-950 border border-slate-700 px-2 py-1.5 text-xs text-slate-200 focus:border-pink-500 focus:outline-none">
+              <option value="Adobe Firefly">Adobe Firefly (Commercial Stock Safe)</option>
+              <option value="Google Flow / Imagen 3">Google Flow / Imagen 3</option>
+              <option value="Midjourney v6.1" selected>Midjourney v6.1 (with --ar &amp; --v 6.1)</option>
+              <option value="Flux.1 Pro / Dev">Flux.1 Pro / Dev (Natural Detailed)</option>
+              <option value="DALL-E 3">DALL-E 3 (Descriptive Narrative)</option>
+              <option value="Stable Diffusion XL">Stable Diffusion XL (Tag + Weight Style)</option>
+            </select>
+          </div>
+
+          <!-- Detail Level & Aspect Ratio -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-2">
+              <label for="promptDetailLevelSelect" class="font-medium text-slate-400 text-[10px] block mb-1">DETAIL LEVEL</label>
+              <select id="promptDetailLevelSelect" class="w-full rounded bg-slate-950 border border-slate-700 px-1.5 py-1 text-xs text-slate-200">
+                <option value="Highly Detailed" selected>Highly Detailed</option>
+                <option value="Standard">Standard</option>
+                <option value="Short">Short &amp; Punchy</option>
+              </select>
+            </div>
+            <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-2">
+              <label for="mjAspectSelect" class="font-medium text-slate-400 text-[10px] block mb-1">ASPECT RATIO</label>
+              <select id="mjAspectSelect" class="w-full rounded bg-slate-950 border border-slate-700 px-1.5 py-1 text-xs text-slate-200">
+                <option value="auto">Auto Detect</option>
+                <option value="1:1">1:1 (Square)</option>
+                <option value="3:2">3:2 (Photo)</option>
+                <option value="2:3">2:3 (Vertical)</option>
+                <option value="4:5">4:5 (Portrait)</option>
+                <option value="5:4">5:4 (Classic)</option>
+                <option value="16:9">16:9 (Widescreen)</option>
+                <option value="9:16">9:16 (Vertical Story)</option>
+                <option value="4:3">4:3 (Standard)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="rounded-xl bg-slate-900/60 border border-slate-800/80 p-2">
+            <label for="mjVersionSelect" class="font-medium text-slate-400 text-[10px] block mb-1">GENERATOR PARAMETER SUFFIX</label>
+            <select id="mjVersionSelect" class="w-full rounded bg-slate-950 border border-slate-700 px-1.5 py-1 text-xs text-slate-200">
+              <option value="--v 6.1 --style raw">--v 6.1 --style raw (Midjourney)</option>
+              <option value="--v 6.1">--v 6.1 (Midjourney)</option>
+              <option value="--niji 6">--niji 6 (Illustration)</option>
+              <option value="none">Clean Prompt (Firefly / Google Flow / Flux)</option>
+            </select>
+          </div>
+
+          <label class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition">
+            <span class="font-medium text-slate-200">INCLUDE NEGATIVE PROMPT</span>
+            <input id="toggleNegativePrompt" type="checkbox" class="sr-only peer" checked />
+            <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-pink-600"></div>
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Column (Independent Scroll Container) -->
+    <main class="flex-1 h-full p-4 lg:p-6 overflow-y-auto overscroll-contain space-y-5">
+
+      <!-- WORKFLOW MODE SWITCHER: METADATA vs IMAGE-TO-PROMPT STUDIO -->
+      <div class="bg-gradient-to-r from-indigo-950/70 via-[#0d1322] to-purple-950/70 border border-indigo-500/30 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-300 font-bold text-xs">AI</div>
+          <div>
+            <h2 class="text-xs sm:text-sm font-bold text-white">Select Generation Mode</h2>
+            <p class="text-[11px] text-slate-400">Extract Stock Metadata, Reverse-Engineer Image-to-Prompt, or Generate Both in 1 Click</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" data-workmode="both" class="workmode-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-600 to-pink-600 text-white shadow-md shadow-indigo-600/25 transition">
+            ⚡ Metadata + Image-to-Prompt (Both)
+          </button>
+          <button type="button" data-workmode="prompt" class="workmode-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-pink-500/50 transition">
+            🎨 Image to Prompt Only
+          </button>
+          <button type="button" data-workmode="metadata" class="workmode-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-indigo-500/50 transition">
+            🏷️ Metadata Only
+          </button>
+
+          <button type="button" id="downloadPromptsTxtBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-pink-600/20 hover:bg-pink-600 text-pink-200 hover:text-white border border-pink-500/40 transition" title="Download all generated Image-to-Prompts as a clean TXT file">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            <span>Download Prompts (.TXT)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Platform Selector Pills (PixCraftAI Style) -->
+      <div class="bg-[#0d1322] border border-slate-800/90 rounded-2xl p-3.5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Target Stock Platform & CSV Format</span>
+          <span id="platformHintBadge" class="text-[11px] text-indigo-300 bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-0.5 rounded-full">Adobe Stock Official CSV: Filename, Title, Keywords, Category, Releases</span>
+        </div>
+        <div id="platformButtonsContainer" class="flex flex-wrap gap-2">
+          <button type="button" data-platform="AdobeStock" class="platform-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-md shadow-indigo-600/25 transition">AdobeStock</button>
+          <button type="button" data-platform="General" class="platform-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">General</button>
+          <button type="button" data-platform="Shutterstock" class="platform-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">Shutterstock</button>
+          <button type="button" data-platform="Freepik" class="platform-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">Freepik</button>
+          <button type="button" data-platform="Vecteezy" class="platform-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">Vecteezy</button>
+          <button type="button" data-platform="Depositphotos" class="platform-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">Depositphotos</button>
+          <button type="button" data-platform="123RF" class="platform-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">123RF</button>
+          <button type="button" data-platform="Dreamstime" class="platform-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">Dreamstime</button>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Upload Zone -->
+      <div id="dropZone" class="relative border-2 border-dashed border-slate-700/80 hover:border-indigo-500/80 rounded-2xl bg-[#0d1322]/90 p-6 sm:p-8 text-center transition cursor-pointer group">
+        <input id="fileInput" type="file" multiple accept="image/jpeg,image/png,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime,.eps,.ai,.pdf" class="hidden" />
+
+        <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
+          <span class="px-3 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Batch Limit: Unlimited Files</span>
+          <span class="px-3 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">Auto-Compress Vision Preview (Saves 90% API Cost & Bandwidth)</span>
+        </div>
+
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center group-hover:scale-105 transition">
+          <svg class="w-7 h-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+        </div>
+
+        <h3 class="text-base sm:text-lg font-bold text-white mb-1">Drag and drop files to extract metadata</h3>
+        <p class="text-xs text-slate-400 mb-4">or click anywhere in this box to browse your computer</p>
+
+        <div class="flex flex-wrap justify-center gap-2 text-[11px] font-semibold">
+          <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">JPG / PNG / WEBP</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">SVG / EPS / AI</span>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">MP4 / MOV VIDEOS (Auto Frame Extract)</span>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800/70 flex flex-wrap items-center justify-center gap-3">
+          <button id="loadSampleDemoBtn" type="button" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
+            Load 3 Sample Stock Images to Test Immediately
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Control Bar & Progress Bar -->
+      <div class="bg-[#0d1322] border border-slate-800/90 rounded-2xl p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Generate All Button -->
+            <button id="startBatchBtn" type="button" class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-600/25 transition disabled:opacity-40 disabled:cursor-not-allowed">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <span id="startBatchBtnText">Generate All Metadata</span>
+            </button>
+
+            <!-- Stop / Pause Batch Button -->
+            <button id="stopBatchBtn" type="button" class="hidden items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              <span>Pause / Stop</span>
+            </button>
+
+            <!-- Retry Failed Button -->
+            <button id="retryFailedBtn" type="button" class="hidden items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span>Retry Failed</span>
+            </button>
+
+            <!-- Regenerate All Button -->
+            <button id="regenerateAllBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition">
+              Regenerate All
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- File Format Selector (Above File List, PixCraftAI Style) -->
+            <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-700 hover:border-indigo-500 rounded-xl px-3 py-1.5 text-xs transition">
+              <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <select id="toolbarFileFormatSelect" aria-label="Toolbar File format" class="bg-transparent text-indigo-300 font-semibold focus:outline-none cursor-pointer">
+                <option value="keep" class="bg-slate-900 text-slate-200">File format</option>
+                <option value=".eps" class="bg-slate-900 text-slate-200">.eps</option>
+                <option value=".ai" class="bg-slate-900 text-slate-200">.ai</option>
+                <option value=".psd" class="bg-slate-900 text-slate-200">.psd</option>
+                <option value=".mp4" class="bg-slate-900 text-slate-200">.mp4</option>
+                <option value=".jpg" class="bg-slate-900 text-slate-200">.jpg</option>
+                <option value=".png" class="bg-slate-900 text-slate-200">.png</option>
+                <option value=".svg" class="bg-slate-900 text-slate-200">.svg</option>
+              </select>
+            </div>
+
+            <!-- Search / Filter Input -->
+            <div class="relative">
+              <input id="searchFilterInput" type="text" placeholder="Filter by filename or keyword..." class="w-44 sm:w-52 rounded-xl bg-slate-900 border border-slate-800 pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+              <svg class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+
+            <!-- Clear All Button -->
+            <button id="clearAllBtn" type="button" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-800 transition">
+              Clear All
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-[11px] text-slate-400">
+            <span id="progressStatusLabel">Ready to process files</span>
+            <span id="progressPercentLabel">0% (0 / 0)</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+            <div id="progressBarFill" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAGE 1, 2 & 3 ANALYTICS: METADATA QUALITY DASHBOARD, PERFORMANCE TRACKING, SIMILARITY & CORRECTION HISTORY -->
+      <section id="analyticsDashboardPanel" class="bg-[#0d1322] border border-indigo-500/30 rounded-2xl p-4 space-y-4 shadow-xl">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h3 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-white">Metadata Quality Dashboard, Performance &amp; Validation Center</h3>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" id="tabBtnQuality" class="dash-tab-btn px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition">Quality &amp; SEO Score</button>
+            <button type="button" id="tabBtnPerf" class="dash-tab-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">Performance &amp; Retry Log</button>
+            <button type="button" id="tabBtnSimilarity" class="dash-tab-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">Similarity &amp; Duplicates (<span id="simCountBadge">0</span>)</button>
+            <button type="button" id="tabBtnCsvCheck" class="dash-tab-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">CSV Validation (<span id="csvIssuesBadge">0</span>)</button>
+            <button type="button" id="tabBtnHistory" class="dash-tab-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition">Correction History (<span id="historyCountBadge">0</span>)</button>
+            <button type="button" id="exportBatchJsonBtn" class="px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition" title="Download Structured JSON Output for all files">{ } Export JSON</button>
+          </div>
+        </div>
+
+        <!-- TAB 1: 5-METRIC QUALITY & ORIGINALITY DASHBOARD -->
+        <div id="dashTabQuality" class="space-y-3 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <!-- Metric 1: Visual Accuracy & Metadata Quality -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span>1. Visual &amp; SEO Quality</span>
+                <span id="dashQualityGrade" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Grade A+</span>
+              </div>
+              <div class="text-xl font-extrabold text-white" id="dashAvgQualityVal">0%</div>
+              <p class="text-[10px] text-slate-400 mt-1" id="dashValidTitlesRatio">0 / 0 Valid Titles • <span id="dashAvgTitleWords">0 avg words</span></p>
+            </div>
+
+            <!-- Metric 2: Prompt Completeness (7-Section Builder) -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span>2. Prompt Completeness</span>
+                <span id="dashPromptCompBadge" class="text-pink-300 font-semibold">7/7 Sections</span>
+              </div>
+              <div class="text-xl font-extrabold text-pink-300" id="dashPromptCompVal">0%</div>
+              <p class="text-[10px] text-slate-400 mt-1">Subject, Composition, Style, Palette, Bg, Lighting, Output</p>
+            </div>
+
+            <!-- Metric 3: Originality & IP Risk Review -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span>3. Originality &amp; IP Check</span>
+                <span id="dashIpFlagsCount" class="text-emerald-400 font-semibold">0 IP Flags</span>
+              </div>
+              <div class="text-sm font-bold text-slate-100" id="dashOriginalityStatus">Original Variations Active</div>
+              <p class="text-[10px] text-slate-400 mt-1">Checks concept variation, IP/brand risk &amp; human review flags</p>
+            </div>
+
+            <!-- Metric 4: Keyword Ranking & Generation Success -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span>4. Generation &amp; Dedup</span>
+                <span class="text-emerald-400 font-semibold" id="dashRemovedDupsCount">0 dups stripped</span>
+              </div>
+              <div class="text-base font-bold text-slate-100" id="dashAvgKwCount">0 avg tags / file</div>
+              <p class="text-[10px] text-slate-400 mt-1"> Analyzed: <span id="dashAnalyzedCount">0</span> • <span id="dashDominantAspect">RGB &amp; Hash</span></p>
+            </div>
+
+            <!-- Metric 5: API Efficiency & Cost Monitoring -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col justify-between">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span>5. API Cost &amp; Tokens</span>
+                <span id="dashTotalTokens" class="text-indigo-300 font-mono font-semibold">0 tok</span>
+              </div>
+              <div class="text-xl font-extrabold text-emerald-300" id="dashEstCostVal">$0.0000</div>
+              <p class="text-[10px] text-slate-400 mt-1">Estimated Gemini API token usage &amp; batch cost</p>
+            </div>
+          </div>
+          <p id="dashQualitySub" class="text-[11px] text-slate-400 bg-slate-900/50 border border-slate-800/80 rounded-lg px-3 py-1.5">
+            <strong class="text-amber-300">Adobe Stock Originality Advisory:</strong> Originality scores &amp; IP flags are helper checks, not a guarantee of Adobe Stock approval or sales. Always review flagged items and ensure generated prompts create meaningfully new concepts rather than mere color or crop changes.
+          </p>
+        </div>
+
+        <!-- TAB 2: PERFORMANCE TRACKING & RETRY LOGIC -->
+        <div id="dashTabPerf" class="hidden space-y-3 text-xs">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+              <span class="text-slate-400 block">Avg API Latency</span>
+              <span id="perfAvgLatency" class="text-lg font-bold text-indigo-300">0 ms</span>
+            </div>
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+              <span class="text-slate-400 block">Throughput Speed</span>
+              <span id="perfThroughput" class="text-lg font-bold text-emerald-300">0.0 files/min</span>
+            </div>
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+              <span class="text-slate-400 block">Auto-Retries Executed</span>
+              <span id="perfTotalRetries" class="text-lg font-bold text-amber-300">0 retries</span>
+            </div>
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
+              <span class="text-slate-400 block">Success Rate</span>
+              <span id="perfSuccessRate" class="text-lg font-bold text-white">100%</span>
+            </div>
+          </div>
+          <div id="perfLogList" class="max-h-36 overflow-y-auto rounded-xl bg-slate-950 border border-slate-800 p-2.5 font-mono text-[11px] text-slate-300 space-y-1">
+            <div class="text-slate-500">Performance &amp; retry telemetry will stream here during generation...</div>
+          </div>
+        </div>
+
+        <!-- TAB 3: SIMILARITY DETECTION & DUPLICATE REMOVAL -->
+        <div id="dashTabSimilarity" class="hidden space-y-2.5 text-xs">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-slate-300">Detects visually similar images (via perceptual color/luminance hash) and overlapping Titles/Keywords (&gt;70% Jaccard similarity) to prevent Adobe Stock spam rejection.</p>
+            <button type="button" id="autoFixSimilarityBtn" class="px-3 py-1.5 rounded-lg font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition">Auto-Diversify Similar Titles &amp; Dedup Batch</button>
+          </div>
+          <div id="similarityReportList" class="max-h-44 overflow-y-auto rounded-xl bg-slate-950 border border-slate-800 p-3 space-y-2">
+            <div class="text-slate-500">No high-similarity conflicts detected across current batch.</div>
+          </div>
+        </div>
+
+        <!-- TAB 4: PRE-EXPORT CSV VALIDATION -->
+        <div id="dashTabCsvCheck" class="hidden space-y-2.5 text-xs">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-slate-300">Verifies Adobe Stock CSV rules: unique filenames, title length (5–200 chars), keyword count (7–49 tags), valid category (1–21), and no prohibited words.</p>
+            <button type="button" id="autoFixCsvIssuesBtn" class="px-3 py-1.5 rounded-lg font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition">Auto-Fix All CSV Issues</button>
+          </div>
+          <div id="csvValidationList" class="max-h-44 overflow-y-auto rounded-xl bg-slate-950 border border-slate-800 p-3 space-y-1.5">
+            <div class="text-slate-500">Upload and generate metadata to run CSV validation checks.</div>
+          </div>
+        </div>
+
+        <!-- TAB 5: USER CORRECTION HISTORY (WITH UNDO) -->
+        <div id="dashTabHistory" class="hidden space-y-2.5 text-xs">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-slate-300">Tracks every manual title edit, keyword ranking adjustment, addition, or deletion with 1-click Undo restore.</p>
+            <button type="button" id="clearHistoryBtn" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">Clear History</button>
+          </div>
+          <div id="correctionHistoryList" class="max-h-44 overflow-y-auto rounded-xl bg-slate-950 border border-slate-800 p-3 space-y-1.5">
+            <div class="text-slate-500">No manual corrections recorded yet. Edit any title or keyword below to log history.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Empty State / Workspace Items List -->
+      <div id="emptyWorkspaceState" class="bg-[#0d1322]/60 border border-slate-800/80 rounded-2xl p-10 text-center">
+        <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-500">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <h4 class="text-sm font-semibold text-slate-300 mb-1">No files uploaded yet</h4>
+        <p class="text-xs text-slate-500 max-w-md mx-auto">
+          Set your Paid Gemini API Key at the top right, customize your title/keyword sliders on the left, and drop your images or videos above to generate unlimited Adobe Stock metadata.
+        </p>
+      </div>
+
+      <div id="itemsGridContainer" class="space-y-4"></div>
+
+    </main>
+  </div>
+
+  <!-- Gemini API Key Setup Modal -->
+  <div id="apiKeyModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="bg-[#0f172a] border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Configure Paid Gemini API Key</h3>
+            <p class="text-[11px] text-slate-400">Stored locally in your browser • Never shared</p>
+          </div>
+        </div>
+        <button id="closeApiKeyModalBtn" type="button" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label for="geminiApiKeyInput" class="font-medium text-slate-300">Google AI Studio API Key(s)</label>
+            <button id="toggleShowKeyBtn" type="button" class="px-2 py-0.5 rounded bg-slate-800 text-[11px] text-slate-300 hover:text-white">Show</button>
+          </div>
+          <textarea id="geminiApiKeyInput" rows="3" placeholder="Paste 1 Paid API Key (AIzaSy...) OR paste multiple API keys (one per line or comma-separated) for automatic rotation..." class="w-full rounded-xl bg-slate-950 border border-slate-700 p-2.5 text-xs font-mono text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"></textarea>
+          <p class="text-[10px] text-slate-400 mt-1">Supports single Paid key or multiple keys (auto-rotates when any key hits quota).</p>
+        </div>
+
+        <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-3 text-[11px] text-indigo-200 space-y-1.5">
+          <p class="font-semibold text-indigo-300">Smart Quota &amp; Model Auto-Rotation Active:</p>
+          <p>• If one model (e.g., <code class="text-white">gemini-3.8-flash</code>, which has a 20 req/day limit on Free Tier keys) hits a quota limit, the app <strong>automatically switches</strong> to <code class="text-white">gemini-3.5-flash-lite</code>, <code class="text-white">gemini-3.1-flash-lite</code>, <code class="text-white">gemini-3.6-flash</code>, etc. without stopping!</p>
+          <p class="text-amber-300/90">• <strong>Note on "free_tier_requests" error:</strong> Gemini Pro subscription (Google One) is separate from AI Studio API billing. To unlock Paid Tier on an API key, click <em>"Set up Billing"</em> on your project in <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="underline text-white">Google AI Studio</a>, or paste multiple keys above!</p>
+        </div>
+
+        <div id="apiTestFeedback" class="hidden rounded-xl p-2.5 text-xs font-medium"></div>
+      </div>
+
+      <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-800">
+        <button id="testApiKeyBtn" type="button" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+          Test Connection
+        </button>
+        <div class="flex items-center gap-2">
+          <button id="clearApiKeyBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-medium text-rose-400 hover:bg-rose-950/40 transition">
+            Remove Key
+          </button>
+          <button id="saveApiKeyBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 transition">
+            Save Key
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+  <script>
+    // =========================================================================
+    // ADOBE STOCK OFFICIAL 21 CATEGORIES
+    // =========================================================================
+    const ADOBE_CATEGORIES = [
+      { id: 1, name: "1 - Animals" },
+      { id: 2, name: "2 - Buildings and Architecture" },
+      { id: 3, name: "3 - Business" },
+      { id: 4, name: "4 - Drinks" },
+      { id: 5, name: "5 - The Environment" },
+      { id: 6, name: "6 - States of Mind" },
+      { id: 7, name: "7 - Food" },
+      { id: 8, name: "8 - Graphic Resources" },
+      { id: 9, name: "9 - Hobbies and Leisure" },
+      { id: 10, name: "10 - Industry" },
+      { id: 11, name: "11 - Landscape" },
+      { id: 12, name: "12 - Lifestyle" },
+      { id: 13, name: "13 - People" },
+      { id: 14, name: "14 - Plants and Flowers" },
+      { id: 15, name: "15 - Culture and Religion" },
+      { id: 16, name: "16 - Science" },
+      { id: 17, name: "17 - Social Issues" },
+      { id: 18, name: "18 - Sports" },
+      { id: 19, name: "19 - Technology" },
+      { id: 20, name: "20 - Transport" },
+      { id: 21, name: "21 - Travel" }
+    ];
+
+    // =========================================================================
+    // APPLICATION STATE
+    // =========================================================================
+    // Ordered from highest quota / fastest multimodal models to fallback preview models
+    const FALLBACK_MODELS = [
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
+      'gemini-3.6-flash',
+      'gemini-3-flash-preview',
+      'gemini-3.8-flash',
+      'gemini-3.1-pro-preview',
+      'gemini-4-argon',
+      'gemini-2.5-flash-lite',
+      'gemini-2.5-flash'
+    ];
+
+    // Track models that hit daily quota for a specific key so we skip them immediately on subsequent images
+    const exhaustedKeyModels = new Set();
+
+    const state = {
+      apiKey: '',
+      apiKeys: [],
+      keyIndex: 0,
+      model: 'gemini-3.5-flash-lite',
+      concurrency: 3,
+      platform: 'AdobeStock',
+      workMode: 'both', // 'both' | 'prompt' | 'metadata'
+      isProcessing: false,
+      stopRequested: false,
+      searchQuery: '',
+      files: [], // { id, file, name, ext, mediaType, previewUrl, base64Data, mimeType, status, errorMsg, title, description, keywords: [], category: 8, releases: '', imageAnalysis: {}, duplicatesRemoved: 0, latencyMs: 0, retriesUsed: 0, qualityScore: 0 }
+      perfLogs: [],
+      correctionHistory: [], // { id, timestamp, fileId, fileName, field, oldVal, newVal, snapshot }
+      batchStartTime: 0,
+      totalCompletedInRun: 0,
+      totalRetriesInRun: 0
+    };
+
+    // =========================================================================
+    // SAFE LOCALSTORAGE HELPERS
+    // =========================================================================
+    function saveLocal(key, val) {
+      try {
+        localStorage.setItem(key, val);
+      } catch (e) {
+        // Ignore storage errors in sandboxed iframes
+      }
+    }
+
+    function loadLocal(key, fallback = '') {
+      try {
+        const v = localStorage.getItem(key);
+        return v !== null ? v : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    // =========================================================================
+    // TOAST NOTIFICATION HELPER
+    // =========================================================================
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bgClass = type === 'success'
+        ? 'bg-emerald-950/95 border-emerald-500/40 text-emerald-200'
+        : type === 'error'
+          ? 'bg-rose-950/95 border-rose-500/40 text-rose-200'
+          : 'bg-slate-900/95 border-indigo-500/40 text-slate-100';
+
+      toast.className = `pointer-events-auto flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border text-xs font-medium shadow-xl transition-all duration-200 ${bgClass}`;
+      toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 200);
+      }, 3200);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // =========================================================================
+    // CLIPBOARD HELPER (IFRAME SAFE)
+    // =========================================================================
+    function copyTextToClipboard(text, label = 'Copied to clipboard!') {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(label, 'success');
+        }).catch(() => fallbackCopy(text, label));
+      } else {
+        fallbackCopy(text, label);
+      }
+    }
+
+    function fallbackCopy(text, label) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast(label, 'success');
+      } catch (err) {
+        showToast('Copy failed', 'error');
+      }
+      document.body.removeChild(ta);
+    }
+
+    // =========================================================================
+    // INITIALIZE SETTINGS & UI LISTENERS
+    // =========================================================================
+    function initApp() {
+      // Load saved API key & preferences
+      state.apiKey = loadLocal('pixcraft_gemini_api_key', '');
+      state.apiKeys = parseApiKeysList(state.apiKey);
+      let savedModel = loadLocal('pixcraft_gemini_model', 'gemini-3.5-flash-lite');
+      // Migrate old defaults or low-free-quota gemini-3.8-flash to high-quota gemini-3.5-flash-lite
+      if (['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-3.8-flash'].includes(savedModel)) {
+        savedModel = 'gemini-3.5-flash-lite';
+        saveLocal('pixcraft_gemini_model', savedModel);
+      }
+      const savedConcurrency = loadLocal('pixcraft_concurrency', '3');
+
+      const modelSelectEl = document.getElementById('modelSelect');
+      modelSelectEl.value = savedModel;
+      if (!modelSelectEl.value) {
+        modelSelectEl.value = 'gemini-3.5-flash-lite';
+      }
+      state.model = modelSelectEl.value;
+      document.getElementById('concurrencySelect').value = savedConcurrency;
+      state.concurrency = parseInt(savedConcurrency, 10) || 3;
+
+      updateApiKeyBadge();
+
+      // Sliders synchronization
+      const sliderPairs = [
+        ['minTitleWords', 'minTitleWordsVal', 'maxTitleWords', true],
+        ['maxTitleWords', 'maxTitleWordsVal', 'minTitleWords', false],
+        ['minKeywords', 'minKeywordsVal', 'maxKeywords', true],
+        ['maxKeywords', 'maxKeywordsVal', 'minKeywords', false],
+        ['minDescWords', 'minDescWordsVal', 'maxDescWords', true],
+        ['maxDescWords', 'maxDescWordsVal', 'minDescWords', false]
+      ];
+
+      sliderPairs.forEach(([id, valId, partnerId, isMin]) => {
+        const el = document.getElementById(id);
+        const valEl = document.getElementById(valId);
+        el.addEventListener('input', () => {
+          let v = parseInt(el.value, 10);
+          const partner = document.getElementById(partnerId);
+          const pv = parseInt(partner.value, 10);
+          if (isMin && v > pv) {
+            partner.value = v;
+            document.getElementById(partnerId + 'Val').textContent = v;
+          } else if (!isMin && v < pv) {
+            partner.value = v;
+            document.getElementById(partnerId + 'Val').textContent = v;
+          }
+          valEl.textContent = v;
+        });
+      });
+
+      // Toggle drawers
+      document.getElementById('toggleCustomPrompt').addEventListener('change', (e) => {
+        document.getElementById('customPromptBox').classList.toggle('hidden', !e.target.checked);
+      });
+      document.getElementById('toggleProhibitedWords').addEventListener('change', (e) => {
+        document.getElementById('prohibitedWordsBox').classList.toggle('hidden', !e.target.checked);
+      });
+
+      // Reset settings
+      document.getElementById('resetSettingsBtn').addEventListener('click', () => {
+        document.getElementById('minTitleWords').value = 8;
+        document.getElementById('minTitleWordsVal').textContent = '8';
+        document.getElementById('maxTitleWords').value = 16;
+        document.getElementById('maxTitleWordsVal').textContent = '16';
+        document.getElementById('minKeywords').value = 30;
+        document.getElementById('minKeywordsVal').textContent = '30';
+        document.getElementById('maxKeywords').value = 45;
+        document.getElementById('maxKeywordsVal').textContent = '45';
+        document.getElementById('minDescWords').value = 12;
+        document.getElementById('minDescWordsVal').textContent = '12';
+        document.getElementById('maxDescWords').value = 25;
+        document.getElementById('maxDescWordsVal').textContent = '25';
+        document.getElementById('toggleSingleWord').checked = false;
+        document.getElementById('toggleWhiteBg').checked = false;
+        document.getElementById('toggleTransBg').checked = false;
+        document.getElementById('toggleSilhouette').checked = false;
+        document.getElementById('toggleCustomPrompt').checked = false;
+        document.getElementById('customPromptBox').classList.add('hidden');
+        document.getElementById('customPromptInput').value = '';
+        document.getElementById('titlePrefixInput').value = '';
+        document.getElementById('titleSuffixInput').value = '';
+        syncFileFormatSelects('keep');
+        showToast('Customization settings reset to default');
+      });
+
+      // Mobile sidebar toggle
+      const sidebar = document.getElementById('customizationSidebar');
+      document.getElementById('mobileSidebarBtn').addEventListener('click', () => {
+        sidebar.classList.toggle('-translate-x-full');
+      });
+      document.getElementById('closeSidebarMobileBtn').addEventListener('click', () => {
+        sidebar.classList.add('-translate-x-full');
+      });
+
+      // Platform selector buttons
+      document.querySelectorAll('.platform-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.platform = btn.getAttribute('data-platform');
+          document.querySelectorAll('.platform-btn').forEach(b => {
+            b.className = 'platform-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition';
+          });
+          btn.className = 'platform-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-md shadow-indigo-600/25 transition';
+          updatePlatformUI();
+        });
+      });
+
+      // Model & Concurrency selects
+      document.getElementById('modelSelect').addEventListener('change', (e) => {
+        state.model = e.target.value;
+        saveLocal('pixcraft_gemini_model', state.model);
+      });
+      document.getElementById('concurrencySelect').addEventListener('change', (e) => {
+        state.concurrency = parseInt(e.target.value, 10) || 3;
+        saveLocal('pixcraft_concurrency', String(state.concurrency));
+      });
+
+      // API Key Modal events
+      document.getElementById('openApiKeyModalBtn').addEventListener('click', openApiKeyModal);
+      document.getElementById('closeApiKeyModalBtn').addEventListener('click', closeApiKeyModal);
+      document.getElementById('toggleShowKeyBtn').addEventListener('click', () => {
+        const inp = document.getElementById('geminiApiKeyInput');
+        inp.classList.toggle('blur-sm');
+      });
+      document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
+        const raw = document.getElementById('geminiApiKeyInput').value.trim();
+        state.apiKey = raw;
+        state.apiKeys = parseApiKeysList(raw);
+        exhaustedKeyModels.clear();
+        saveLocal('pixcraft_gemini_api_key', raw);
+        updateApiKeyBadge();
+        closeApiKeyModal();
+        showToast(state.apiKeys.length ? `${state.apiKeys.length} Gemini API Key(s) saved!` : 'API Key cleared', state.apiKeys.length ? 'success' : 'info');
+      });
+      document.getElementById('clearApiKeyBtn').addEventListener('click', () => {
+        document.getElementById('geminiApiKeyInput').value = '';
+        state.apiKey = '';
+        state.apiKeys = [];
+        exhaustedKeyModels.clear();
+        saveLocal('pixcraft_gemini_api_key', '');
+        updateApiKeyBadge();
+        showToast('API Key removed', 'info');
+      });
+      document.getElementById('testApiKeyBtn').addEventListener('click', testGeminiApiKey);
+
+      // Drag and drop & file input
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+
+      dropZone.addEventListener('click', (e) => {
+        if (e.target.id === 'loadSampleDemoBtn') return;
+        fileInput.click();
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+          handleFilesAdded(Array.from(e.target.files));
+          fileInput.value = '';
+        }
+      });
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drop-active');
+      });
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drop-active');
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drop-active');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleFilesAdded(Array.from(e.dataTransfer.files));
+        }
+      });
+
+      // Sample Demo Images Button
+      document.getElementById('loadSampleDemoBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        loadSampleStockItems();
+      });
+
+      // Batch action buttons
+      document.getElementById('startBatchBtn').addEventListener('click', () => startBatchProcessing(false));
+      document.getElementById('stopBatchBtn').addEventListener('click', () => {
+        state.stopRequested = true;
+        showToast('Stopping after current in-flight requests finish...', 'info');
+      });
+      document.getElementById('retryFailedBtn').addEventListener('click', () => {
+        state.files.forEach(f => {
+          if (f.status === 'error') f.status = 'pending';
+        });
+        renderWorkspace();
+        startBatchProcessing(false);
+      });
+      document.getElementById('regenerateAllBtn').addEventListener('click', () => {
+        if (state.files.length === 0) {
+          showToast('Upload files first', 'info');
+          return;
+        }
+        state.files.forEach(f => {
+          f.status = 'pending';
+        });
+        renderWorkspace();
+        startBatchProcessing(false);
+      });
+      document.getElementById('clearAllBtn').addEventListener('click', () => {
+        if (state.isProcessing) {
+          state.stopRequested = true;
+        }
+        state.files = [];
+        renderWorkspace();
+        showToast('Workspace cleared');
+      });
+
+      // Filter input
+      document.getElementById('searchFilterInput').addEventListener('input', (e) => {
+        state.searchQuery = e.target.value.trim().toLowerCase();
+        renderWorkspace();
+      });
+
+      // File format dropdowns synchronization (.eps, .ai, .psd, .mp4, .jpg, .png, .svg)
+      const savedFileFormat = loadLocal('pixcraft_file_format', 'keep');
+      syncFileFormatSelects(savedFileFormat, false);
+
+      ['headerFileFormatSelect', 'toolbarFileFormatSelect', 'csvExtensionSelect'].forEach(selId => {
+        const el = document.getElementById(selId);
+        if (el) {
+          el.addEventListener('change', (e) => {
+            syncFileFormatSelects(e.target.value, true);
+          });
+        }
+      });
+
+      // Dashboard Tab Switching & Header Shortcuts
+      const dashTabs = {
+        tabBtnQuality: 'dashTabQuality',
+        tabBtnPerf: 'dashTabPerf',
+        tabBtnSimilarity: 'dashTabSimilarity',
+        tabBtnCsvCheck: 'dashTabCsvCheck',
+        tabBtnHistory: 'dashTabHistory'
+      };
+
+      function switchDashboardTab(activeBtnId) {
+        Object.entries(dashTabs).forEach(([btnId, panelId]) => {
+          const b = document.getElementById(btnId);
+          const p = document.getElementById(panelId);
+          if (!b || !p) return;
+          if (btnId === activeBtnId) {
+            b.className = 'dash-tab-btn px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition';
+            p.classList.remove('hidden');
+          } else {
+            b.className = 'dash-tab-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-slate-700 transition';
+            p.classList.add('hidden');
+          }
+        });
+      }
+
+      Object.keys(dashTabs).forEach(btnId => {
+        const el = document.getElementById(btnId);
+        if (el) el.addEventListener('click', () => switchDashboardTab(btnId));
+      });
+
+      document.getElementById('toggleDashboardBtn').addEventListener('click', () => {
+        const panel = document.getElementById('analyticsDashboardPanel');
+        panel.classList.toggle('hidden');
+      });
+
+      document.getElementById('openCsvValidatorBtn').addEventListener('click', () => {
+        const panel = document.getElementById('analyticsDashboardPanel');
+        panel.classList.remove('hidden');
+        switchDashboardTab('tabBtnCsvCheck');
+        updateAnalyticsDashboard();
+        showToast('CSV Validation Report updated!', 'info');
+      });
+
+      // Auto-Diversify Similar Titles & Dedup Batch
+      document.getElementById('autoFixSimilarityBtn').addEventListener('click', () => {
+        const conflicts = computeBatchSimilarities();
+        if (conflicts.length === 0) {
+          showToast('No similarity conflicts to fix!', 'info');
+          return;
+        }
+        conflicts.forEach((c, idx) => {
+          const itemB = c.fileB;
+          const oldTitle = itemB.title;
+          const ia = itemB.imageAnalysis || {};
+          const variationTag = ia.lighting ? ia.lighting.split(' ')[0].toLowerCase() : `variation ${idx + 2}`;
+          if (itemB.title && !itemB.title.toLowerCase().includes(variationTag)) {
+            itemB.title = `${itemB.title} - ${variationTag} composition`.slice(0, 198);
+            recordCorrectionHistory(itemB, 'title (similarity auto-diversify)', oldTitle, itemB.title);
+          }
+          // Rotate keywords slightly to reduce Jaccard overlap
+          if (itemB.keywords.length > 6) {
+            const oldKws = [...itemB.keywords];
+            const firstTwo = itemB.keywords.splice(0, 2);
+            itemB.keywords.splice(4, 0, ...firstTwo);
+            recordCorrectionHistory(itemB, 'keywords (similarity diversify)', oldKws, itemB.keywords);
+          }
+        });
+        renderWorkspace();
+        showToast(`Diversified ${conflicts.length} similar file pair(s)!`, 'success');
+      });
+
+      // Auto-Fix All CSV Issues
+      document.getElementById('autoFixCsvIssuesBtn').addEventListener('click', () => {
+        const issues = runCsvValidationChecks();
+        if (issues.length === 0) {
+          showToast('All files already pass CSV validation!', 'success');
+          return;
+        }
+        state.files.forEach((item, idx) => {
+          if (!item.title || item.title.trim().length < 15) {
+            const baseWords = item.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ');
+            item.title = `Commercial stock visual of ${baseWords} high quality design asset`;
+          }
+          if (item.title.length > 200) {
+            item.title = item.title.slice(0, 198).trim();
+          }
+          const fallbackTags = ['commercial', 'stock', 'design', 'modern', 'background', 'creative', 'concept', 'illustration', 'visual', 'graphic'];
+          let fIdx = 0;
+          while (item.keywords.length < 7 && fIdx < fallbackTags.length) {
+            if (!item.keywords.includes(fallbackTags[fIdx])) {
+              item.keywords.push(fallbackTags[fIdx]);
+            }
+            fIdx++;
+          }
+          if (item.keywords.length > 49) {
+            item.keywords = item.keywords.slice(0, 49);
+          }
+        });
+        renderWorkspace();
+        showToast('Auto-fixed all CSV validation issues!', 'success');
+      });
+
+      // Export Structured JSON for Batch
+      document.getElementById('exportBatchJsonBtn').addEventListener('click', () => {
+        if (state.files.length === 0) {
+          showToast('Upload files first to export JSON', 'error');
+          return;
+        }
+        const payload = state.files.map(item => ({
+          filename: getCsvFilenameForItem(item),
+          originalFilename: item.name,
+          platform: state.platform,
+          title: item.title,
+          description: item.description,
+          keywords: item.keywords,
+          top10Keywords: item.keywords.slice(0, 10),
+          category: item.category,
+          qualityScore: item.qualityScore,
+          imageAnalysis: item.imageAnalysis || {}
+        }));
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${state.platform}_Metadata_Structured_${state.files.length}_files.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('Exported Structured JSON file!', 'success');
+      });
+
+      // Clear Correction History
+      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+        state.correctionHistory = [];
+        updateAnalyticsDashboard();
+        showToast('Correction history cleared', 'info');
+      });
+
+      // Workflow Mode Switcher (Both / Image-to-Prompt Only / Metadata Only)
+      document.querySelectorAll('.workmode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.workMode = btn.getAttribute('data-workmode') || 'both';
+          document.querySelectorAll('.workmode-btn').forEach(b => {
+            b.className = 'workmode-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 text-slate-300 border border-slate-800 hover:border-indigo-500/50 transition';
+          });
+          btn.className = 'workmode-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-600 to-pink-600 text-white shadow-md shadow-indigo-600/25 transition';
+
+          const startBtnText = document.getElementById('startBatchBtnText');
+          if (!state.isProcessing && startBtnText) {
+            startBtnText.textContent = state.workMode === 'prompt'
+              ? 'Generate All Image Prompts'
+              : state.workMode === 'metadata'
+                ? 'Generate All Metadata'
+                : 'Generate Metadata + Prompts';
+          }
+          renderWorkspace();
+        });
+      });
+
+      document.getElementById('toggleNegativePrompt').addEventListener('change', () => {
+        renderWorkspace();
+      });
+
+      // Download All Prompts as .TXT file
+      document.getElementById('downloadPromptsTxtBtn').addEventListener('click', () => {
+        const ready = state.files.filter(f => f.imagePrompt || f.midjourneyPrompt || f.title);
+        if (ready.length === 0) {
+          showToast('Generate prompts for at least 1 image first!', 'error');
+          return;
+        }
+        const blocks = ready.map((item, i) => {
+          return [
+            `====================================================================`,
+            `#${i + 1} FILE: ${getCsvFilenameForItem(item)} (Source: ${item.name})`,
+            `STYLE & LIGHTING: ${item.styleBreakdown || 'N/A'}`,
+            `--------------------------------------------------------------------`,
+            `[DETAILED IMAGE PROMPT]:`,
+            `${item.imagePrompt || item.description || ''}`,
+            ``,
+            `[MIDJOURNEY / FLUX COMMAND]:`,
+            `/imagine prompt: ${item.midjourneyPrompt || item.imagePrompt || ''}`,
+            ``,
+            `[NEGATIVE PROMPT]:`,
+            `${item.negativePrompt || ''}`,
+            ``,
+            `[ALTERNATIVE CONCEPT VARIATIONS]:`,
+            `${(item.alternativePrompts || []).map((v, idx) => `Variation ${idx + 1}: ${v}`).join('\r\n') || 'N/A'}`,
+            ``,
+            `[ORIGINALITY IMPROVEMENTS]:`,
+            `${(item.originalityChanges || []).join(' | ') || 'N/A'}`,
+            ``,
+            `[REVIEW FLAGS]:`,
+            `${(item.reviewFlags || []).join(' | ') || 'No IP or quality flags.'}`,
+            `====================================================================`
+          ].join('\r\n');
+        });
+        const blob = new Blob([blocks.join('\r\n\r\n')], { type: 'text/plain;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `MeetMars_Image_Prompts_${ready.length}_files.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast(`Downloaded ${ready.length} Image Prompts (.TXT)!`, 'success');
+      });
+
+      // Download CSV
+      document.getElementById('downloadCsvBtn').addEventListener('click', exportPlatformCsv);
+
+      updatePlatformUI();
+      renderWorkspace();
+    }
+
+    function updatePlatformUI() {
+      const hint = document.getElementById('platformHintBadge');
+      const dlLabel = document.getElementById('downloadCsvBtnLabel');
+      if (state.platform === 'AdobeStock') {
+        hint.textContent = 'Adobe Stock Official CSV: Filename, Title, Keywords, Category, Releases';
+        dlLabel.textContent = 'Download Adobe Stock CSV';
+      } else if (state.platform === 'Shutterstock') {
+        hint.textContent = 'Shutterstock CSV: Filename, Description, Keywords, Categories';
+        dlLabel.textContent = 'Download Shutterstock CSV';
+      } else if (state.platform === 'Freepik') {
+        hint.textContent = 'Freepik CSV: Filename, Title, Keywords';
+        dlLabel.textContent = 'Download Freepik CSV';
+      } else {
+        hint.textContent = `${state.platform} CSV: Filename, Title, Description, Keywords, Category`;
+        dlLabel.textContent = `Download ${state.platform} CSV`;
+      }
+    }
+
+    function parseApiKeysList(raw) {
+      return String(raw || '')
+        .split(/[\r\n,\s]+/)
+        .map(k => k.trim())
+        .filter(k => k.length > 10);
+    }
+
+    function updateApiKeyBadge() {
+      const dot = document.getElementById('apiKeyStatusDot');
+      const txt = document.getElementById('apiKeyStatusText');
+      const count = state.apiKeys.length;
+      if (count > 0) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400';
+        txt.textContent = count > 1 ? `${count} API Keys Active` : 'API Key Active';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-pulse';
+        txt.textContent = 'Set API Key';
+      }
+    }
+
+    function openApiKeyModal() {
+      const modal = document.getElementById('apiKeyModal');
+      document.getElementById('geminiApiKeyInput').value = state.apiKey;
+      document.getElementById('apiTestFeedback').classList.add('hidden');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeApiKeyModal() {
+      const modal = document.getElementById('apiKeyModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function setActiveModel(newModel) {
+      state.model = newModel;
+      saveLocal('pixcraft_gemini_model', newModel);
+      const sel = document.getElementById('modelSelect');
+      if (!Array.from(sel.options).some(o => o.value === newModel)) {
+        const opt = document.createElement('option');
+        opt.value = newModel;
+        opt.className = 'bg-slate-900';
+        opt.textContent = `${newModel} (Auto-Detected)`;
+        sel.prepend(opt);
+      }
+      sel.value = newModel;
+    }
+
+    async function callGeminiWithAutoFallback(rawKeyInput, payload) {
+      const keys = parseApiKeysList(rawKeyInput);
+      if (keys.length === 0) {
+        throw new Error('Please set your Gemini API Key first.');
+      }
+
+      const candidates = [state.model, ...FALLBACK_MODELS.filter(m => m !== state.model)];
+      let lastError = null;
+      let sawFreeTierQuotaError = false;
+
+      // Rotate across all provided API keys and all available Gemini models
+      for (let kOffset = 0; kOffset < keys.length; kOffset++) {
+        const kIdx = (state.keyIndex + kOffset) % keys.length;
+        const activeKey = keys[kIdx];
+
+        for (const candidateModel of candidates) {
+          const cacheKey = `${activeKey.slice(-6)}:${candidateModel}`;
+          if (exhaustedKeyModels.has(cacheKey)) {
+            continue; // Already hit daily limit on this specific key + model
+          }
+
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${candidateModel}:generateContent?key=${encodeURIComponent(activeKey)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.ok) {
+            state.keyIndex = (kIdx + 1) % keys.length; // Round-robin across keys
+            if (candidateModel !== state.model) {
+              const prev = state.model;
+              setActiveModel(candidateModel);
+              showToast(`Quota/availability auto-switch: ${prev} → ${candidateModel}`, 'info');
+            }
+            const data = await res.json();
+            return { data, usedModel: candidateModel };
+          }
+
+          const errData = await res.json().catch(() => ({}));
+          const msg = (errData.error && errData.error.message) || `HTTP ${res.status}`;
+          lastError = new Error(msg);
+
+          if (/free_tier_requests/i.test(msg)) {
+            sawFreeTierQuotaError = true;
+          }
+
+          // Check if error is due to model deprecation / 404 OR 429 quota exceeded on this model!
+          const isModelUnavailable =
+            res.status === 404 ||
+            /no longer available|not found|not supported|update your code to use|deprecated/i.test(msg);
+
+          const isQuotaExceeded =
+            res.status === 429 ||
+            /exceeded your current quota|quota exceeded|rate_limit|RESOURCE_EXHAUSTED/i.test(msg);
+
+          if (isModelUnavailable || isQuotaExceeded) {
+            // Mark this key+model as exhausted if it hit daily quota or is unavailable
+            if (isModelUnavailable || /per day|free_tier_requests/i.test(msg)) {
+              exhaustedKeyModels.add(cacheKey);
+            }
+
+            // If Google recommends a specific model in the error, insert it right next
+            const recommendedMatch = msg.match(/models\/([a-zA-Z0-9._-]+)/);
+            if (recommendedMatch && recommendedMatch[1]) {
+              const recModel = recommendedMatch[1];
+              if (!candidates.includes(recModel)) {
+                candidates.splice(candidates.indexOf(candidateModel) + 1, 0, recModel);
+              }
+            }
+            // Continue loop to try the next model or next API key automatically!
+            continue;
+          }
+
+          // If invalid API key (400/403 API_KEY_INVALID), try next key if multiple keys exist
+          if (res.status === 400 || res.status === 403) {
+            break;
+          }
+          throw lastError;
+        }
+      }
+
+      if (sawFreeTierQuotaError) {
+        throw new Error(
+          'Your API Key is currently on Google AI Studio "Free Tier" (generate_content_free_tier_requests) and all free model quotas are exhausted. To get Unlimited Paid Quota, go to aistudio.google.com/app/apikey and click "Set up Billing" (Pay-as-you-go) on your project, OR paste another API key!'
+        );
+      }
+      throw lastError || new Error('All Gemini models & API keys exhausted their current quota.');
+    }
+
+    async function testGeminiApiKey() {
+      const rawKey = document.getElementById('geminiApiKeyInput').value.trim();
+      const fb = document.getElementById('apiTestFeedback');
+      fb.classList.remove('hidden');
+      const parsed = parseApiKeysList(rawKey);
+      if (parsed.length === 0) {
+        fb.className = 'rounded-xl p-2.5 text-xs font-medium bg-rose-950/80 border border-rose-500/40 text-rose-200';
+        fb.textContent = 'Please paste at least one valid Gemini API Key first.';
+        return;
+      }
+      fb.className = 'rounded-xl p-2.5 text-xs font-medium bg-slate-900 border border-slate-700 text-slate-300';
+      fb.textContent = 'Testing connection & finding a model with available quota...';
+
+      try {
+        exhaustedKeyModels.clear();
+        const { usedModel } = await callGeminiWithAutoFallback(rawKey, {
+          contents: [{ parts: [{ text: 'Reply with OK' }] }]
+        });
+        state.apiKey = rawKey;
+        state.apiKeys = parsed;
+        saveLocal('pixcraft_gemini_api_key', rawKey);
+        updateApiKeyBadge();
+        fb.className = 'rounded-xl p-2.5 text-xs font-medium bg-emerald-950/80 border border-emerald-500/40 text-emerald-200';
+        fb.textContent = `Connected & Saved (${parsed.length} key${parsed.length > 1 ? 's' : ''})! Active Model: ${usedModel} has available quota and is ready.`;
+      } catch (err) {
+        fb.className = 'rounded-xl p-2.5 text-xs font-medium bg-rose-950/80 border border-rose-500/40 text-rose-200';
+        fb.textContent = `API Error: ${err.message}`;
+      }
+    }
+
+    // =========================================================================
+    // CLIENT-SIDE THUMBNAIL & BASE64 EXTRACTION (IMAGES, VIDEOS, VECTORS)
+    // =========================================================================
+    // =========================================================================
+    // STAGE 1: IMAGE PREVIEW ANALYSIS ENGINE (ASPECT, COLORS, LUMINANCE, HASH)
+    // =========================================================================
+    function analyzeCanvasVisuals(canvas, origW, origH) {
+      const ctx = canvas.getContext('2d');
+      const sampleSize = 16;
+      const small = document.createElement('canvas');
+      small.width = sampleSize;
+      small.height = sampleSize;
+      const sCtx = small.getContext('2d');
+      sCtx.drawImage(canvas, 0, 0, sampleSize, sampleSize);
+      const data = sCtx.getImageData(0, 0, sampleSize, sampleSize).data;
+
+      let rSum = 0, gSum = 0, bSum = 0, lumSum = 0;
+      const lums = [];
+      const colorBuckets = {};
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        rSum += r; gSum += g; bSum += b;
+        const lum = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+        lumSum += lum;
+        lums.push(lum);
+
+        // Quantize color to 32-step buckets for dominant palette extraction
+        const qr = Math.min(255, Math.round(r / 51) * 51);
+        const qg = Math.min(255, Math.round(g / 51) * 51);
+        const qb = Math.min(255, Math.round(b / 51) * 51);
+        const hex = '#' + [qr, qg, qb].map(x => x.toString(16).padStart(2, '0')).join('');
+        colorBuckets[hex] = (colorBuckets[hex] || 0) + 1;
+      }
+
+      const pixelCount = sampleSize * sampleSize;
+      const avgLum = Math.round(lumSum / pixelCount);
+      const hashBits = lums.slice(0, 64).map(l => (l >= avgLum ? '1' : '0')).join('');
+
+      const sortedColors = Object.entries(colorBuckets)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(e => e[0]);
+
+      const ratio = origW / Math.max(1, origH);
+      let orientation = 'Square (1:1)';
+      if (ratio > 1.2) orientation = 'Horizontal / Landscape';
+      else if (ratio < 0.85) orientation = 'Vertical / Portrait';
+
+      let lighting = 'Balanced Lighting';
+      if (avgLum > 195) lighting = 'High-Key / Bright';
+      else if (avgLum < 75) lighting = 'Low-Key / Dark Moody';
+
+      return {
+        width: origW,
+        height: origH,
+        orientation,
+        lighting,
+        avgBrightness: Math.round((avgLum / 255) * 100),
+        dominantColors: sortedColors.length ? sortedColors : ['#6366f1', '#1e293b'],
+        perceptualHash: hashBits
+      };
+    }
+
+    // =========================================================================
+    // STAGE 1: TITLE VALIDATION & KEYWORD RANKING / STEM DEDUPLICATION
+    // =========================================================================
+    function validateItemTitle(item) {
+      const minW = parseInt(document.getElementById('minTitleWords').value, 10) || 8;
+      const maxW = parseInt(document.getElementById('maxTitleWords').value, 10) || 16;
+      const t = String(item.title || '').trim();
+      if (!t) {
+        return { valid: false, status: 'Empty', message: 'Title not generated yet', color: 'slate' };
+      }
+      const words = t.split(/\s+/).filter(Boolean);
+      const issues = [];
+      if (words.length < minW) issues.push(`Too short (${words.length}/${minW} min words)`);
+      if (words.length > maxW + 4) issues.push(`Long (${words.length}/${maxW} max words)`);
+      if (t.length > 200) issues.push(`Exceeds 200 chars (${t.length})`);
+      if (/[:;!?""«»]/.test(t)) issues.push('Contains punctuation (: ; ! ?)');
+
+      if (issues.length === 0) {
+        return { valid: true, status: 'SEO Optimal', message: `${words.length} words • ${t.length} chars`, color: 'emerald' };
+      }
+      return { valid: false, status: issues[0], message: issues.join(' • '), color: 'amber' };
+    }
+
+    function deduplicateAndRankKeywords(rawKeywords, titleText, singleWordOnly, prohibitedList, maxKw) {
+      const titleWords = new Set(
+        String(titleText || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9\s]/g, ' ')
+          .split(/\s+/)
+          .filter(w => w.length > 2)
+      );
+
+      const seenExact = new Set();
+      const seenStems = new Set();
+      const primaryRanked = [];
+      const secondaryRanked = [];
+      let duplicatesRemoved = 0;
+
+      for (let k of rawKeywords) {
+        let word = String(k || '').toLowerCase().trim().replace(/["'.,;!?]/g, '');
+        if (!word) continue;
+        if (singleWordOnly && word.includes(' ')) {
+          word = word.split(/\s+/)[0];
+        }
+        if (prohibitedList.some(bad => word === bad || word.includes(bad))) {
+          duplicatesRemoved++;
+          continue;
+        }
+        // Stem normalization to catch close plural duplicates (e.g., "mountain" vs "mountains")
+        const stem = word.length > 4 ? word.replace(/(?:es|s)$/, '') : word;
+        if (seenExact.has(word) || seenStems.has(stem)) {
+          duplicatesRemoved++;
+          continue;
+        }
+        seenExact.add(word);
+        seenStems.add(stem);
+
+        // Boost keywords that match primary subject words in the Title so Top-10 are ultra-relevant
+        const matchesTitle = word.split(/\s+/).some(part => titleWords.has(part));
+        if (matchesTitle && primaryRanked.length < 10) {
+          primaryRanked.push(word);
+        } else {
+          secondaryRanked.push(word);
+        }
+      }
+
+      const combined = [...primaryRanked, ...secondaryRanked].slice(0, maxKw);
+      return { keywords: combined, duplicatesRemoved };
+    }
+
+    // =========================================================================
+    // STAGE 3: METADATA QUALITY SCORE ENGINE (0-100%) & CORRECTION LOGGER
+    // =========================================================================
+    function computeItemQualityScore(item) {
+      if (!item.title && (!item.keywords || item.keywords.length === 0)) return 0;
+      let score = 0;
+      const minW = parseInt(document.getElementById('minTitleWords').value, 10) || 8;
+      const maxW = parseInt(document.getElementById('maxTitleWords').value, 10) || 16;
+      const minKw = parseInt(document.getElementById('minKeywords').value, 10) || 30;
+
+      // 1. Title score (up to 35 pts)
+      const tWords = item.title ? item.title.trim().split(/\s+/).filter(Boolean) : [];
+      if (tWords.length >= minW && tWords.length <= maxW + 3 && item.title.length <= 200) {
+        score += 35;
+      } else if (tWords.length >= 5 && item.title.length <= 200) {
+        score += 24;
+      } else if (tWords.length > 0) {
+        score += 12;
+      }
+
+      // 2. Keywords count & ranking score (up to 40 pts)
+      const kwLen = item.keywords.length;
+      if (kwLen >= minKw && kwLen <= 49) {
+        score += 30;
+      } else if (kwLen >= 15) {
+        score += 20;
+      } else if (kwLen > 0) {
+        score += 10;
+      }
+
+      // Check top-10 keyword alignment with title (10 pts)
+      const top10 = item.keywords.slice(0, 10).join(' ');
+      const titleTokens = tWords.map(w => w.toLowerCase().replace(/[^a-z0-9]/g, '')).filter(w => w.length > 3);
+      const overlap = titleTokens.filter(t => top10.includes(t)).length;
+      if (overlap >= 2) score += 10;
+      else if (overlap === 1) score += 5;
+
+      // 3. Description & Category completeness (up to 25 pts)
+      const descWords = item.description ? item.description.trim().split(/\s+/).filter(Boolean).length : 0;
+      if (descWords >= 8) score += 15;
+      else if (descWords > 0) score += 8;
+
+      if (item.category >= 1 && item.category <= 21) score += 10;
+
+      return Math.min(100, score);
+    }
+
+    function recordCorrectionHistory(item, field, oldVal, newVal) {
+      if (String(oldVal) === String(newVal)) return;
+      const entry = {
+        id: 'hist_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        fileId: item.id,
+        fileName: item.name,
+        field,
+        oldVal: Array.isArray(oldVal) ? [...oldVal] : oldVal,
+        newVal: Array.isArray(newVal) ? [...newVal] : newVal
+      };
+      state.correctionHistory.unshift(entry);
+      if (state.correctionHistory.length > 50) state.correctionHistory.pop();
+      updateAnalyticsDashboard();
+    }
+
+    // =========================================================================
+    // STAGE 2: SIMILARITY DETECTION & PRE-EXPORT CSV VALIDATION
+    // =========================================================================
+    function computeBatchSimilarities() {
+      const conflicts = [];
+      const doneFiles = state.files;
+      for (let i = 0; i < doneFiles.length; i++) {
+        for (let j = i + 1; j < doneFiles.length; j++) {
+          const a = doneFiles[i];
+          const b = doneFiles[j];
+
+          // 1. Visual Perceptual Hash similarity
+          let visualSim = 0;
+          const hA = a.imageAnalysis?.perceptualHash;
+          const hB = b.imageAnalysis?.perceptualHash;
+          if (hA && hB && hA.length === hB.length) {
+            let sameBits = 0;
+            for (let k = 0; k < hA.length; k++) {
+              if (hA[k] === hB[k]) sameBits++;
+            }
+            visualSim = Math.round((sameBits / hA.length) * 100);
+          }
+
+          // 2. Keyword Jaccard similarity
+          let kwSim = 0;
+          if (a.keywords.length > 0 && b.keywords.length > 0) {
+            const setA = new Set(a.keywords);
+            const setB = new Set(b.keywords);
+            let inter = 0;
+            setA.forEach(w => { if (setB.has(w)) inter++; });
+            const union = new Set([...a.keywords, ...b.keywords]).size;
+            kwSim = union > 0 ? Math.round((inter / union) * 100) : 0;
+          }
+
+          // 3. Exact or near-duplicate Title check
+          const exactTitle = a.title && b.title && a.title.trim().toLowerCase() === b.title.trim().toLowerCase();
+
+          if (exactTitle || kwSim >= 72 || visualSim >= 92) {
+            conflicts.push({
+              fileA: a,
+              fileB: b,
+              visualSim,
+              kwSim,
+              exactTitle
+            });
+          }
+        }
+      }
+      return conflicts;
+    }
+
+    function runCsvValidationChecks() {
+      const issues = [];
+      const seenNames = new Set();
+
+      state.files.forEach(item => {
+        const csvName = getCsvFilenameForItem(item);
+        if (seenNames.has(csvName.toLowerCase())) {
+          issues.push({ item, severity: 'error', msg: `Duplicate CSV Filename "${csvName}"` });
+        }
+        seenNames.add(csvName.toLowerCase());
+
+        if (!item.title || item.title.trim().length < 15) {
+          issues.push({ item, severity: 'error', msg: `Title missing or too short (<15 chars)` });
+        } else if (item.title.length > 200) {
+          issues.push({ item, severity: 'warn', msg: `Title exceeds 200 chars (${item.title.length})` });
+        }
+
+        if (item.keywords.length < 7) {
+          issues.push({ item, severity: 'error', msg: `Too few keywords (${item.keywords.length}/7 min required by Adobe Stock)` });
+        } else if (item.keywords.length > 49) {
+          issues.push({ item, severity: 'warn', msg: `Exceeds 49 keywords (${item.keywords.length})` });
+        }
+      });
+      return issues;
+    }
+
+    function updateAnalyticsDashboard() {
+      const total = state.files.length;
+      const doneItems = state.files.filter(f => f.status === 'done' || f.title || f.keywords.length > 0);
+
+      // Update Quality Score
+      state.files.forEach(f => {
+        f.qualityScore = computeItemQualityScore(f);
+      });
+
+      const avgScore = doneItems.length > 0
+        ? Math.round(doneItems.reduce((acc, f) => acc + (f.qualityScore || 0), 0) / doneItems.length)
+        : 0;
+
+      const avgBadge = document.getElementById('headerAvgScoreBadge');
+      if (avgBadge) avgBadge.textContent = doneItems.length > 0 ? `${avgScore}%` : '--%';
+
+      const valEl = document.getElementById('dashAvgQualityVal');
+      if (valEl) valEl.textContent = `${avgScore}%`;
+
+      const gradeEl = document.getElementById('dashQualityGrade');
+      if (gradeEl) {
+        const grade = avgScore >= 90 ? 'Grade A+' : avgScore >= 80 ? 'Grade A' : avgScore >= 65 ? 'Grade B' : avgScore > 0 ? 'Needs Polish' : 'Pending';
+        gradeEl.textContent = grade;
+      }
+
+      // Title validation summary
+      const validTitles = doneItems.filter(f => validateItemTitle(f).valid).length;
+      const avgWords = doneItems.length > 0
+        ? Math.round(doneItems.reduce((acc, f) => acc + (f.title ? f.title.trim().split(/\s+/).filter(Boolean).length : 0), 0) / doneItems.length)
+        : 0;
+      const vtEl = document.getElementById('dashValidTitlesRatio');
+      if (vtEl) vtEl.textContent = `${validTitles} / ${doneItems.length} Optimal`;
+      const awEl = document.getElementById('dashAvgTitleWords');
+      if (awEl) awEl.textContent = `${avgWords} avg words / title`;
+
+      // Keyword & dedup summary
+      const totalDups = state.files.reduce((acc, f) => acc + (f.duplicatesRemoved || 0), 0);
+      const avgKws = doneItems.length > 0
+        ? Math.round(doneItems.reduce((acc, f) => acc + f.keywords.length, 0) / doneItems.length)
+        : 0;
+      const dupEl = document.getElementById('dashRemovedDupsCount');
+      if (dupEl) dupEl.textContent = `${totalDups} duplicates stripped`;
+      const akEl = document.getElementById('dashAvgKwCount');
+      if (akEl) akEl.textContent = `${avgKws} avg tags / file`;
+
+      // Image preview analysis summary
+      const analyzedCount = state.files.filter(f => f.imageAnalysis && f.imageAnalysis.width).length;
+      const anEl = document.getElementById('dashAnalyzedCount');
+      if (anEl) anEl.textContent = `${analyzedCount}/${total}`;
+
+      // Metric 2: Prompt Completeness (7/7 Builder Sections)
+      const avgPromptComp = doneItems.length > 0
+        ? Math.round(doneItems.reduce((acc, f) => acc + (f.promptCompleteness || 0), 0) / doneItems.length)
+        : 0;
+      const pcValEl = document.getElementById('dashPromptCompVal');
+      if (pcValEl) pcValEl.textContent = `${avgPromptComp}%`;
+      const pcBadgeEl = document.getElementById('dashPromptCompBadge');
+      if (pcBadgeEl) pcBadgeEl.textContent = `${Math.round((avgPromptComp / 100) * 7)}/7 Sections`;
+
+      // Metric 3: Originality & IP Risk Review Flags
+      const totalIpFlags = doneItems.reduce((acc, f) => acc + ((f.reviewFlags && f.reviewFlags.length) || 0), 0);
+      const ipEl = document.getElementById('dashIpFlagsCount');
+      if (ipEl) {
+        ipEl.textContent = `${totalIpFlags} Review Flag${totalIpFlags === 1 ? '' : 's'}`;
+        ipEl.className = totalIpFlags > 0 ? 'text-amber-400 font-bold' : 'text-emerald-400 font-semibold';
+      }
+      const origMode = document.getElementById('promptModeSelect')?.value || 'original-variation';
+      const origStatusEl = document.getElementById('dashOriginalityStatus');
+      if (origStatusEl) {
+        origStatusEl.textContent = origMode === 'original-variation' ? 'Original Variation (Safe)' : `Mode: ${origMode}`;
+      }
+
+      // Metric 5: API Token Usage & Estimated Cost (~$0.00015 per 1K tokens on Flash-Lite)
+      const totalTokens = state.files.reduce((acc, f) => acc + (f.tokensUsed || 0), 0);
+      const tokEl = document.getElementById('dashTotalTokens');
+      if (tokEl) tokEl.textContent = `${totalTokens.toLocaleString()} tok`;
+      const estCost = (totalTokens / 1000) * 0.00015;
+      const costEl = document.getElementById('dashEstCostVal');
+      if (costEl) costEl.textContent = `$${estCost.toFixed(4)}`;
+
+      // Performance telemetry
+      const latencies = doneItems.map(f => f.latencyMs || 0).filter(ms => ms > 0);
+      const avgLat = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0;
+      const latEl = document.getElementById('perfAvgLatency');
+      if (latEl) latEl.textContent = `${avgLat} ms`;
+
+      const retriesTotal = state.files.reduce((acc, f) => acc + (f.retriesUsed || 0), 0);
+      const retEl = document.getElementById('perfTotalRetries');
+      if (retEl) retEl.textContent = `${retriesTotal} retries`;
+
+      const throughput = avgLat > 0 ? ((60000 / avgLat) * state.concurrency).toFixed(1) : '0.0';
+      const tpEl = document.getElementById('perfThroughput');
+      if (tpEl) tpEl.textContent = `${throughput} files/min`;
+
+      const failedCount = state.files.filter(f => f.status === 'error').length;
+      const sr = (doneItems.length + failedCount) > 0
+        ? Math.round((doneItems.length / (doneItems.length + failedCount)) * 100)
+        : 100;
+      const srEl = document.getElementById('perfSuccessRate');
+      if (srEl) srEl.textContent = `${sr}%`;
+
+      // Similarity list
+      const conflicts = computeBatchSimilarities();
+      const simBadge = document.getElementById('simCountBadge');
+      if (simBadge) simBadge.textContent = conflicts.length;
+      const simList = document.getElementById('similarityReportList');
+      if (simList) {
+        if (conflicts.length === 0) {
+          simList.innerHTML = `<div class="text-emerald-400 font-medium">✓ Zero high-similarity or duplicate metadata conflicts detected across ${total} file(s).</div>`;
+        } else {
+          simList.innerHTML = conflicts.map(c => `
+            <div class="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-amber-950/40 border border-amber-500/30 text-amber-200">
+              <span><strong>${escapeHtml(c.fileA.name)}</strong> &amp; <strong>${escapeHtml(c.fileB.name)}</strong>: ${c.exactTitle ? 'Identical Title! ' : ''}${c.kwSim}% Keyword Overlap • ${c.visualSim}% Visual Match</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">Click "Auto-Diversify" above</span>
+            </div>
+          `).join('');
+        }
+      }
+
+      // CSV Validation list
+      const csvIssues = runCsvValidationChecks();
+      const csvBadge = document.getElementById('csvIssuesBadge');
+      if (csvBadge) csvBadge.textContent = csvIssues.length;
+      const csvList = document.getElementById('csvValidationList');
+      if (csvList) {
+        if (state.files.length === 0) {
+          csvList.innerHTML = `<div class="text-slate-500">Upload and generate metadata to run CSV validation checks.</div>`;
+        } else if (csvIssues.length === 0) {
+          csvList.innerHTML = `<div class="text-emerald-400 font-medium">✓ All ${state.files.length} file(s) pass Adobe Stock CSV format, length, keyword count, and uniqueness rules!</div>`;
+        } else {
+          csvList.innerHTML = csvIssues.map(iss => `
+            <div class="flex items-center justify-between gap-2 p-2 rounded-lg ${iss.severity === 'error' ? 'bg-rose-950/40 border border-rose-500/30 text-rose-200' : 'bg-amber-950/40 border border-amber-500/30 text-amber-200'}">
+              <span><strong>${escapeHtml(iss.item.name)}:</strong> ${escapeHtml(iss.msg)}</span>
+              <span class="text-[10px] uppercase font-bold">${iss.severity}</span>
+            </div>
+          `).join('');
+        }
+      }
+
+      // User Correction History list
+      const histBadge = document.getElementById('historyCountBadge');
+      if (histBadge) histBadge.textContent = state.correctionHistory.length;
+      const histList = document.getElementById('correctionHistoryList');
+      if (histList) {
+        if (state.correctionHistory.length === 0) {
+          histList.innerHTML = `<div class="text-slate-500">No manual corrections recorded yet. Edit any title, rank/reorder keywords, or remove tags below to log history.</div>`;
+        } else {
+          histList.innerHTML = state.correctionHistory.map(h => `
+            <div class="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200">
+              <div class="truncate max-w-xl">
+                <span class="text-slate-500 font-mono mr-1.5">[${escapeHtml(h.timestamp)}]</span>
+                <strong class="text-indigo-300">${escapeHtml(h.fileName)}</strong>
+                <span class="text-slate-400">(${escapeHtml(h.field)})</span>
+              </div>
+              <button type="button" data-undo-id="${h.id}" class="px-2.5 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white text-[11px] font-semibold transition">Undo Restore</button>
+            </div>
+          `).join('');
+
+          histList.querySelectorAll('[data-undo-id]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const hid = btn.getAttribute('data-undo-id');
+              const idx = state.correctionHistory.findIndex(x => x.id === hid);
+              if (idx === -1) return;
+              const entry = state.correctionHistory[idx];
+              const target = state.files.find(f => f.id === entry.fileId);
+              if (target) {
+                if (entry.field === 'title') target.title = entry.oldVal;
+                else if (entry.field === 'description') target.description = entry.oldVal;
+                else if (entry.field === 'imagePrompt') target.imagePrompt = entry.oldVal;
+                else if (entry.field.startsWith('keywords')) target.keywords = Array.isArray(entry.oldVal) ? [...entry.oldVal] : target.keywords;
+                updateSingleCardDOM(target);
+              }
+              state.correctionHistory.splice(idx, 1);
+              updateAnalyticsDashboard();
+              showToast(`Restored ${entry.field} on ${entry.fileName}`, 'success');
+            });
+          });
+        }
+      }
+    }
+
+    function appendPerfLog(msg) {
+      const ts = new Date().toLocaleTimeString([], { hour12: false });
+      state.perfLogs.unshift(`[${ts}] ${msg}`);
+      if (state.perfLogs.length > 60) state.perfLogs.pop();
+      const box = document.getElementById('perfLogList');
+      if (box) {
+        box.innerHTML = state.perfLogs.map(l => `<div>${escapeHtml(l)}</div>`).join('');
+      }
+    }
+
+    async function handleFilesAdded(fileList) {
+      showToast(`Loading ${fileList.length} file(s)...`, 'info');
+      for (const file of fileList) {
+        const id = 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        const extMatch = file.name.match(/\.([^.]+)$/);
+        const ext = extMatch ? extMatch[1].toLowerCase() : '';
+
+        let previewInfo = { previewUrl: '', base64Data: '', mimeType: 'image/jpeg', mediaType: 'IMAGE' };
+        try {
+          if (file.type.startsWith('video/') || ['mp4', 'mov', 'webm'].includes(ext)) {
+            previewInfo = await extractVideoFrameToBase64(file);
+            previewInfo.mediaType = 'VIDEO';
+          } else if (file.type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'webp', 'svg'].includes(ext)) {
+            previewInfo = await compressImageToBase64(file, 768);
+            previewInfo.mediaType = ext === 'svg' ? 'VECTOR' : 'IMAGE';
+          } else {
+            // EPS / AI / PDF vector without raster preview: generate smart canvas card & analyze filename + vector context
+            previewInfo = createVectorPlaceholderBase64(file.name);
+            previewInfo.mediaType = 'VECTOR';
+          }
+        } catch (err) {
+          previewInfo = createVectorPlaceholderBase64(file.name);
+        }
+
+        state.files.push({
+          id,
+          name: file.name,
+          ext,
+          mediaType: previewInfo.mediaType,
+          previewUrl: previewInfo.previewUrl,
+          base64Data: previewInfo.base64Data,
+          mimeType: previewInfo.mimeType,
+          status: 'pending', // 'pending' | 'processing' | 'done' | 'error'
+          errorMsg: '',
+          title: '',
+          description: '',
+          keywords: [],
+          category: 8,
+          releases: '',
+          imagePrompt: '',
+          midjourneyPrompt: '',
+          negativePrompt: '',
+          styleBreakdown: '',
+          imageSummary: '',
+          mainSubject: '',
+          supportingObjects: '',
+          visualStyle: '',
+          compositionDetail: '',
+          colorPaletteDesc: [],
+          backgroundDetail: '',
+          lightingAndRendering: '',
+          outputRequirements: '',
+          alternativePrompts: [],
+          originalityChanges: [],
+          reviewFlags: [],
+          promptCompleteness: 0,
+          tokensUsed: 0,
+          feedbackNote: '',
+          imageAnalysis: previewInfo.imageAnalysis || {},
+          duplicatesRemoved: 0,
+          latencyMs: 0,
+          retriesUsed: 0,
+          qualityScore: 0
+        });
+      }
+      renderWorkspace();
+    }
+
+    function compressImageToBase64(file, maxDim = 768) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let w = img.width || 512;
+            let h = img.height || 512;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            // Fill white background for transparent PNGs so Vision model sees dark strokes clearly
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            const analysis = analyzeCanvasVisuals(canvas, img.width || w, img.height || h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.84);
+            const base64Data = dataUrl.split(',')[1];
+            resolve({
+              previewUrl: dataUrl,
+              base64Data,
+              mimeType: 'image/jpeg',
+              imageAnalysis: analysis
+            });
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function extractVideoFrameToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        const objUrl = URL.createObjectURL(file);
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        video.src = objUrl;
+
+        const cleanup = () => URL.revokeObjectURL(objUrl);
+
+        video.onloadeddata = () => {
+          video.currentTime = Math.min(1.0, (video.duration || 2) * 0.25);
+        };
+        video.onseeked = () => {
+          try {
+            const maxDim = 768;
+            let w = video.videoWidth || 640;
+            let h = video.videoHeight || 360;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, w, h);
+            const analysis = analyzeCanvasVisuals(canvas, video.videoWidth || w, video.videoHeight || h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.84);
+            cleanup();
+            resolve({
+              previewUrl: dataUrl,
+              base64Data: dataUrl.split(',')[1],
+              mimeType: 'image/jpeg',
+              imageAnalysis: analysis
+            });
+          } catch (e) {
+            cleanup();
+            reject(e);
+          }
+        };
+        video.onerror = (e) => {
+          cleanup();
+          reject(e);
+        };
+      });
+    }
+
+    function createVectorPlaceholderBase64(filename) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 480;
+      canvas.height = 320;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 480, 320);
+      grad.addColorStop(0, '#1e1b4b');
+      grad.addColorStop(1, '#312e81');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 480, 320);
+      ctx.fillStyle = '#a5b4fc';
+      ctx.font = 'bold 22px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('VECTOR / EPS ASSET', 240, 140);
+      ctx.fillStyle = '#e0e7ff';
+      ctx.font = '15px Inter, sans-serif';
+      ctx.fillText(filename.slice(0, 38), 240, 180);
+      const analysis = analyzeCanvasVisuals(canvas, 480, 320);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      return {
+        previewUrl: dataUrl,
+        base64Data: dataUrl.split(',')[1],
+        mimeType: 'image/jpeg',
+        imageAnalysis: analysis
+      };
+    }
+
+    // =========================================================================
+    // DEMO SAMPLE GENERATOR (3 STOCK ASSETS DRAWN ON CANVAS)
+    // =========================================================================
+    function loadSampleStockItems() {
+      const demos = [
+        {
+          name: 'modern_workspace_laptop_coffee.jpg',
+          draw: (ctx, w, h) => {
+            const g = ctx.createLinearGradient(0, 0, w, h);
+            g.addColorStop(0, '#0f172a');
+            g.addColorStop(1, '#1e293b');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, w, h);
+            // Desk surface
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(0, h * 0.65, w, h * 0.35);
+            // Laptop screen
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(w * 0.25, h * 0.25, w * 0.38, h * 0.4);
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(w * 0.27, h * 0.28, w * 0.34, h * 0.34);
+            // Coffee mug
+            ctx.fillStyle = '#f8fafc';
+            ctx.beginPath();
+            ctx.arc(w * 0.75, h * 0.58, 32, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.fillText('Minimal Business Workspace & Laptop', 60, 50);
+          }
+        },
+        {
+          name: 'golden_autumn_mountain_sunrise_landscape.jpg',
+          draw: (ctx, w, h) => {
+            const sky = ctx.createLinearGradient(0, 0, 0, h);
+            sky.addColorStop(0, '#7c2d12');
+            sky.addColorStop(0.5, '#ea580c');
+            sky.addColorStop(1, '#fde047');
+            ctx.fillStyle = sky;
+            ctx.fillRect(0, 0, w, h);
+            // Sun
+            ctx.fillStyle = '#fef08a';
+            ctx.beginPath();
+            ctx.arc(w * 0.5, h * 0.45, 55, 0, Math.PI * 2);
+            ctx.fill();
+            // Mountains
+            ctx.fillStyle = '#431407';
+            ctx.beginPath();
+            ctx.moveTo(0, h);
+            ctx.lineTo(w * 0.35, h * 0.45);
+            ctx.lineTo(w * 0.7, h);
+            ctx.fill();
+            ctx.fillStyle = '#290d04';
+            ctx.beginPath();
+            ctx.moveTo(w * 0.3, h);
+            ctx.lineTo(w * 0.72, h * 0.4);
+            ctx.lineTo(w, h);
+            ctx.fill();
+          }
+        },
+        {
+          name: 'cybersecurity_cloud_network_shield_vector.eps',
+          draw: (ctx, w, h) => {
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, w, h);
+            // Glowing Shield
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(w * 0.5, h * 0.18);
+            ctx.lineTo(w * 0.7, h * 0.28);
+            ctx.lineTo(w * 0.7, h * 0.55);
+            ctx.lineTo(w * 0.5, h * 0.82);
+            ctx.lineTo(w * 0.3, h * 0.55);
+            ctx.lineTo(w * 0.3, h * 0.28);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fillStyle = '#818cf8';
+            ctx.font = 'bold 22px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('CYBER SECURITY LOCK', w * 0.5, h * 0.52);
+          }
+        }
+      ];
+
+      demos.forEach((d, idx) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 400;
+        const ctx = canvas.getContext('2d');
+        d.draw(ctx, 640, 400);
+        const analysis = analyzeCanvasVisuals(canvas, 640, 400);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.86);
+        const ext = d.name.split('.').pop();
+        state.files.push({
+          id: 'sample_' + Date.now() + '_' + idx,
+          name: d.name,
+          ext,
+          mediaType: ext === 'eps' ? 'VECTOR' : 'IMAGE',
+          previewUrl: dataUrl,
+          base64Data: dataUrl.split(',')[1],
+          mimeType: 'image/jpeg',
+          status: 'pending',
+          errorMsg: '',
+          title: '',
+          description: '',
+          keywords: [],
+          category: idx === 0 ? 3 : idx === 1 ? 11 : 19,
+          releases: '',
+          imageAnalysis: analysis,
+          duplicatesRemoved: 0,
+          latencyMs: 0,
+          retriesUsed: 0,
+          qualityScore: 0
+        });
+      });
+
+      renderWorkspace();
+      showToast('Loaded 3 sample stock assets! Click "Generate All Metadata" to test.', 'success');
+    }
+
+    // =========================================================================
+    // GEMINI API CALL WITH CUSTOMIZATION RULES & EXPONENTIAL BACKOFF
+    // =========================================================================
+    function buildPromptInstruction(item) {
+      const minTitle = parseInt(document.getElementById('minTitleWords').value, 10) || 8;
+      const maxTitle = parseInt(document.getElementById('maxTitleWords').value, 10) || 16;
+      const minKw = parseInt(document.getElementById('minKeywords').value, 10) || 30;
+      const maxKw = parseInt(document.getElementById('maxKeywords').value, 10) || 45;
+      const minDesc = parseInt(document.getElementById('minDescWords').value, 10) || 12;
+      const maxDesc = parseInt(document.getElementById('maxDescWords').value, 10) || 25;
+
+      const singleWordOnly = document.getElementById('toggleSingleWord').checked;
+      const whiteBg = document.getElementById('toggleWhiteBg').checked;
+      const transBg = document.getElementById('toggleTransBg').checked;
+      const silhouette = document.getElementById('toggleSilhouette').checked;
+      const useCustom = document.getElementById('toggleCustomPrompt').checked;
+      const customText = document.getElementById('customPromptInput').value.trim();
+      const useProhibited = document.getElementById('toggleProhibitedWords').checked;
+      const prohibitedText = document.getElementById('prohibitedWordsInput').value.trim();
+
+      let specialRules = [];
+      if (singleWordOnly) {
+        specialRules.push('- CRITICAL: Every single keyword in the keywords array MUST be a single word (no spaces or multi-word phrases).');
+      }
+      if (whiteBg) {
+        specialRules.push('- Include "isolated on white background", "white background", "cutout" in relevant title/keywords.');
+      }
+      if (transBg) {
+        specialRules.push('- Mention "transparent background", "isolated", "png cutout" in relevant keywords.');
+      }
+      if (silhouette) {
+        specialRules.push('- Emphasize "silhouette", "shadow", "backlit outline" in the title and top keywords.');
+      }
+      if (useCustom && customText) {
+        specialRules.push(`- Additional User Direction: ${customText}`);
+      }
+      if (useProhibited && prohibitedText) {
+        specialRules.push(`- PROHIBITED WORDS (Never use any of these in title, description, or keywords): ${prohibitedText}`);
+      }
+
+      const ia = item.imageAnalysis || {};
+      const visualMetaContext = ia.width
+        ? `Visual Analysis: ${ia.width}x${ia.height}px (${ia.orientation}), Lighting: ${ia.lighting} (${ia.avgBrightness}% luminance), Dominant Colors: ${(ia.dominantColors || []).join(', ')}.`
+        : '';
+
+      const promptMode = document.getElementById('promptModeSelect')?.value || 'original-variation';
+      const targetGenerator = document.getElementById('img2PromptTargetSelect')?.value || 'Midjourney v6.1';
+      const promptStyle = document.getElementById('img2PromptStyleSelect')?.value || 'Photorealistic image';
+      const detailLevel = document.getElementById('promptDetailLevelSelect')?.value || 'Highly Detailed';
+      const mjAspectPref = document.getElementById('mjAspectSelect')?.value || 'auto';
+      const mjVerPref = document.getElementById('mjVersionSelect')?.value || '--v 6.1 --style raw';
+
+      let autoAr = '16:9';
+      if (ia.width && ia.height) {
+        const r = ia.width / ia.height;
+        if (r > 1.6) autoAr = '16:9';
+        else if (r > 1.4) autoAr = '3:2';
+        else if (r > 1.15) autoAr = '4:3';
+        else if (r < 0.65) autoAr = '9:16';
+        else if (r < 0.75) autoAr = '2:3';
+        else if (r < 0.9) autoAr = '4:5';
+        else autoAr = '1:1';
+      }
+      const finalAr = mjAspectPref === 'auto' ? autoAr : mjAspectPref;
+      const mjSuffix = `--ar ${finalAr}${mjVerPref !== 'none' ? ' ' + mjVerPref : ''}`;
+
+      return `You are an expert visual analyst, Adobe Stock SEO Metadata Specialist, and Master AI Image-Prompt Engineer.
+
+TASK:
+Analyze the supplied image (Filename: "${item.name}", Type: ${item.mediaType}. ${visualMetaContext}) and generate:
+(A) High-converting stock metadata optimized for ${state.platform}
+(B) Deep visual understanding, structured Prompt Detail Builder sections, ready-to-use generation prompts, 2 meaningfully different Original Concept Variations, originality improvements, and IP/quality review flags.
+
+MODE: ${promptMode}
+TARGET GENERATOR: ${targetGenerator}
+TARGET OUTPUT STYLE: ${promptStyle}
+DETAIL LEVEL: ${detailLevel}
+ASPECT RATIO PREFERENCE: ${finalAr}
+
+1. DEEP VISUAL ANALYSIS & FACTUAL ACCURACY:
+Identify the main_subject, supporting_objects, composition (placement, scale, visual hierarchy), visual_style (flat vector, line art, 3D render, photography, pattern), color_palette, background_and_negative_space, and lighting_and_rendering.
+CRITICAL: Describe ONLY details visibly supported by the image. Do NOT invent hidden objects, locations, brands, or historical context. If any detail is uncertain, note it in "review_flags".
+
+2. ADOBE STOCK ORIGINALITY SYSTEM:
+For "original-variation" and "stock-vector" modes, preserve the broad subject/theme but design a MEANINGFULLY NEW commercial concept in "prompt" and "alternative_prompts". Change the conceptual arrangement, supporting elements, visual hierarchy, or commercial use-case. Do NOT merely change the color, crop, or rotation. List the specific conceptual changes in "originality_changes".
+
+3. INTELLECTUAL PROPERTY (IP) & CONTRADICTION CHECK:
+Never request replication of a named artist's style, copyrighted character, brand logo, watermark, or signature. Do not mix contradictory instructions (e.g., "flat 2D vector" with "85mm shallow depth of field"). Flag any recognizable brand, logo, face, or IP concern in "review_flags" for human review.
+
+4. STOCK METADATA REQUIREMENTS:
+- "title": Commercial buyer-searchable title between ${minTitle} and ${maxTitle} words (max 195 chars, no colons/quotes).
+- "description": Detailed SEO description between ${minDesc} and ${maxDesc} words.
+- "keywords": ${minKw} to ${maxKw} lowercase keywords ranked strictly by commercial search importance (Top 10 most important first).
+- "category": Official Adobe Stock integer ID from 1 to 21.
+${specialRules.join('\n')}
+
+Return ONLY valid JSON matching this exact schema:
+{
+  "title": "string",
+  "description": "string",
+  "keywords": ["keyword1", "keyword2"],
+  "category": 8,
+  "image_summary": "1-2 sentence factual summary of the reference image",
+  "main_subject": "Primary subject and its attributes/position",
+  "supporting_objects": "Supporting elements and object relationships",
+  "visual_style": "Medium, shape language, and artistic style",
+  "composition": "Framing, visual hierarchy, and layout",
+  "color_palette": ["dominant color 1", "color 2", "accent color 3"],
+  "background_and_negative_space": "Background type and copy space availability",
+  "lighting_and_rendering": "Lighting direction, shadows, texture, and rendering technique",
+  "output_requirements": "Commercial stock readiness, aspect ratio ${finalAr}, clean edges",
+  "prompt": "Cohesive, ready-to-use master prompt combining Subject, Composition, Style (${promptStyle}), Palette, Background, Lighting/Rendering, and Output Requirements",
+  "midjourney_prompt": "Master prompt formatted for ${targetGenerator} ending with ${mjSuffix}",
+  "negative_prompt": ["unwanted text", "watermark", "signature", "cluttered composition", "inconsistent shapes", "low quality"],
+  "alternative_prompts": [
+    "Concept Variation 1: Meaningfully different composition, supporting objects, or commercial use-case",
+    "Concept Variation 2: Distinct layout, perspective, or negative-space arrangement for commercial buyers"
+  ],
+  "originality_changes": [
+    "Specific conceptual change 1 vs reference image",
+    "Specific compositional/hierarchy change 2"
+  ],
+  "review_flags": []
+}`;
+    }
+
+    async function generateMetadataForItem(item, attempt = 1) {
+      const startTime = performance.now();
+      const promptText = buildPromptInstruction(item);
+
+      const payload = {
+        contents: [
+          {
+            parts: [
+              { text: promptText },
+              {
+                inlineData: {
+                  mimeType: item.mimeType || 'image/jpeg',
+                  data: item.base64Data
+                }
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.35,
+          responseMimeType: 'application/json'
+        }
+      };
+
+      let data;
+      let usedModel = state.model;
+      try {
+        const result = await callGeminiWithAutoFallback(state.apiKey, payload);
+        data = result.data;
+        usedModel = result.usedModel;
+      } catch (err) {
+        if (/429|quota|rate|500|503|overloaded/i.test(err.message) && attempt < 3) {
+          item.retriesUsed = (item.retriesUsed || 0) + 1;
+          appendPerfLog(`Retry #${attempt} for ${item.name} (${err.message.slice(0, 60)}...)`);
+          await new Promise(r => setTimeout(r, 1200 * attempt));
+          return generateMetadataForItem(item, attempt + 1);
+        }
+        appendPerfLog(`Failed ${item.name}: ${err.message.slice(0, 80)}`);
+        throw err;
+      }
+
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!rawText) {
+        throw new Error('Empty response from Gemini API');
+      }
+
+      let parsed;
+      try {
+        const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+        parsed = JSON.parse(cleaned);
+      } catch (e) {
+        if (attempt < 2) {
+          item.retriesUsed = (item.retriesUsed || 0) + 1;
+          appendPerfLog(`Malformed JSON retry for ${item.name}`);
+          return generateMetadataForItem(item, attempt + 1);
+        }
+        throw new Error('Invalid JSON returned by model');
+      }
+
+      // Post-process Title with prefix/suffix & prohibited words
+      const prefix = document.getElementById('titlePrefixInput').value.trim();
+      const suffix = document.getElementById('titleSuffixInput').value.trim();
+      const useProhibited = document.getElementById('toggleProhibitedWords').checked;
+      const prohibitedList = useProhibited
+        ? document.getElementById('prohibitedWordsInput').value
+            .split(',')
+            .map(s => s.trim().toLowerCase())
+            .filter(Boolean)
+        : [];
+
+      let finalTitle = String(parsed.title || '').trim().replace(/^["']|["']$/g, '').replace(/[:;!?]/g, '');
+      if (prefix) finalTitle = `${prefix} ${finalTitle}`.trim();
+      if (suffix) finalTitle = `${finalTitle} ${suffix}`.trim();
+
+      // Stage 1: Clean, Rank & Deduplicate keywords (exact + plural stem deduplication)
+      const maxKw = Math.min(49, parseInt(document.getElementById('maxKeywords').value, 10) || 45);
+      const singleWordOnly = document.getElementById('toggleSingleWord').checked;
+
+      let kwArray = Array.isArray(parsed.keywords)
+        ? parsed.keywords
+        : String(parsed.keywords || '').split(',');
+
+      const { keywords: cleanKws, duplicatesRemoved } = deduplicateAndRankKeywords(
+        kwArray,
+        finalTitle,
+        singleWordOnly,
+        prohibitedList,
+        maxKw
+      );
+
+      const catNum = parseInt(parsed.category, 10);
+      item.title = finalTitle.slice(0, 199);
+      item.description = String(parsed.description || '').trim();
+      item.keywords = cleanKws;
+
+      // Deep Image Understanding & 7-Section Prompt Builder fields
+      item.imageSummary = String(parsed.image_summary || item.description || '').trim();
+      item.mainSubject = String(parsed.main_subject || '').trim();
+      item.supportingObjects = String(parsed.supporting_objects || '').trim();
+      item.visualStyle = String(parsed.visual_style || '').trim();
+      item.compositionDetail = String(parsed.composition || '').trim();
+      item.colorPaletteDesc = Array.isArray(parsed.color_palette) ? parsed.color_palette.map(String) : [];
+      item.backgroundDetail = String(parsed.background_and_negative_space || '').trim();
+      item.lightingAndRendering = String(parsed.lighting_and_rendering || '').trim();
+      item.outputRequirements = String(parsed.output_requirements || '').trim();
+
+      item.imagePrompt = String(parsed.prompt || parsed.imagePrompt || item.description || '').trim();
+      item.midjourneyPrompt = String(parsed.midjourney_prompt || parsed.midjourneyPrompt || item.imagePrompt || '').trim();
+
+      const negArr = Array.isArray(parsed.negative_prompt)
+        ? parsed.negative_prompt.join(', ')
+        : String(parsed.negative_prompt || parsed.negativePrompt || 'unwanted text, watermark, signature, logo, cluttered composition, inconsistent shapes, deformed, low quality');
+      item.negativePrompt = negArr.trim();
+
+      item.alternativePrompts = Array.isArray(parsed.alternative_prompts)
+        ? parsed.alternative_prompts.map(s => String(s).trim()).filter(Boolean)
+        : [];
+      item.originalityChanges = Array.isArray(parsed.originality_changes)
+        ? parsed.originality_changes.map(s => String(s).trim()).filter(Boolean)
+        : [];
+
+      // Validate for IP risks or contradictory instructions
+      const rawFlags = Array.isArray(parsed.review_flags) ? parsed.review_flags.map(String).filter(Boolean) : [];
+      const combinedPromptText = `${item.imagePrompt} ${item.alternativePrompts.join(' ')}`.toLowerCase();
+      if (/\b(nike|apple|adidas|disney|marvel|pixar|coca-cola|gucci|louis vuitton|batman|spiderman|pokemon)\b/i.test(combinedPromptText)) {
+        rawFlags.push('IP Risk Warning: Potential brand or copyrighted character detected in prompt.');
+      }
+      if (/flat vector/i.test(combinedPromptText) && /shallow depth of field|bokeh|85mm lens/i.test(combinedPromptText)) {
+        rawFlags.push('Contradiction Warning: Prompt mixes 2D flat vector with 3D camera bokeh/lens terms.');
+      }
+      item.reviewFlags = rawFlags;
+
+      item.styleBreakdown = `${item.visualStyle || item.mediaType} • ${item.lightingAndRendering || item.imageAnalysis?.lighting || 'Commercial Lighting'}`.slice(0, 95);
+
+      // Compute 7-Section Prompt Completeness Score (0-100%)
+      const builderSections = [
+        item.mainSubject,
+        item.compositionDetail,
+        item.visualStyle,
+        item.colorPaletteDesc.length > 0 ? 'ok' : '',
+        item.backgroundDetail,
+        item.lightingAndRendering,
+        item.outputRequirements
+      ];
+      const filledCount = builderSections.filter(Boolean).length;
+      item.promptCompleteness = Math.round((filledCount / 7) * 100);
+
+      // Token & Cost estimation from usageMetadata or character length
+      const usageMeta = data?.usageMetadata;
+      item.tokensUsed = usageMeta?.totalTokenCount || Math.round((promptText.length + rawText.length) / 3.8) + 258;
+
+      item.duplicatesRemoved = duplicatesRemoved;
+      item.category = (catNum >= 1 && catNum <= 21) ? catNum : 8;
+      item.latencyMs = Math.round(performance.now() - startTime);
+      item.qualityScore = computeItemQualityScore(item);
+      item.status = 'done';
+      item.errorMsg = '';
+
+      appendPerfLog(`✓ ${item.name} processed in ${item.latencyMs}ms via ${usedModel} (Score: ${item.qualityScore}%, ${cleanKws.length} tags, ${duplicatesRemoved} dups removed)`);
+    }
+
+    // =========================================================================
+    // BATCH CONCURRENCY QUEUE ENGINE
+    // =========================================================================
+    async function startBatchProcessing(onlySingleItemId = false) {
+      if (!state.apiKey || state.apiKey.length < 10) {
+        openApiKeyModal();
+        showToast('Please enter your Paid Gemini API Key first!', 'error');
+        return;
+      }
+
+      const queue = onlySingleItemId
+        ? state.files.filter(f => f.id === onlySingleItemId)
+        : state.files.filter(f => f.status === 'pending' || f.status === 'error');
+
+      if (queue.length === 0) {
+        showToast('All uploaded files already have metadata! Click "Regenerate All" if you want to re-run.', 'info');
+        return;
+      }
+
+      state.isProcessing = true;
+      state.stopRequested = false;
+      updateBatchButtonsUI();
+
+      let currentIndex = 0;
+      const workerCount = Math.min(state.concurrency, queue.length);
+
+      async function worker() {
+        while (currentIndex < queue.length && !state.stopRequested) {
+          const item = queue[currentIndex++];
+          item.status = 'processing';
+          item.errorMsg = '';
+          updateSingleCardDOM(item);
+          updateStatsAndProgress();
+
+          try {
+            await generateMetadataForItem(item);
+          } catch (err) {
+            item.status = 'error';
+            item.errorMsg = err.message || 'Generation failed';
+          }
+          updateSingleCardDOM(item);
+          updateStatsAndProgress();
+        }
+      }
+
+      const workers = [];
+      for (let i = 0; i < workerCount; i++) {
+        workers.push(worker());
+      }
+
+      await Promise.all(workers);
+
+      state.isProcessing = false;
+      updateBatchButtonsUI();
+      updateStatsAndProgress();
+
+      const doneCount = state.files.filter(f => f.status === 'done').length;
+      if (state.stopRequested) {
+        showToast('Batch paused by user.', 'info');
+      } else {
+        showToast(`Metadata generation complete! (${doneCount}/${state.files.length} ready)`, 'success');
+      }
+    }
+
+    function updateBatchButtonsUI() {
+      const startBtn = document.getElementById('startBatchBtn');
+      const stopBtn = document.getElementById('stopBatchBtn');
+      const startText = document.getElementById('startBatchBtnText');
+
+      if (state.isProcessing) {
+        startBtn.disabled = true;
+        startText.textContent = 'Generating with Gemini AI...';
+        stopBtn.classList.remove('hidden');
+        stopBtn.classList.add('flex');
+      } else {
+        startBtn.disabled = false;
+        startText.textContent = 'Generate All Metadata';
+        stopBtn.classList.add('hidden');
+        stopBtn.classList.remove('flex');
+      }
+    }
+
+    // =========================================================================
+    // WORKSPACE RENDERING & INLINE EDITING
+    // =========================================================================
+    function updateStatsAndProgress() {
+      const total = state.files.length;
+      const done = state.files.filter(f => f.status === 'done').length;
+      const failed = state.files.filter(f => f.status === 'error').length;
+      const pending = state.files.filter(f => f.status === 'pending' || f.status === 'processing').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statDone').textContent = done;
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statFailed').textContent = failed;
+
+      const retryBtn = document.getElementById('retryFailedBtn');
+      if (failed > 0 && !state.isProcessing) {
+        retryBtn.classList.remove('hidden');
+        retryBtn.classList.add('flex');
+      } else {
+        retryBtn.classList.add('hidden');
+        retryBtn.classList.remove('flex');
+      }
+
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      document.getElementById('progressBarFill').style.width = `${pct}%`;
+      document.getElementById('progressPercentLabel').textContent = `${pct}% (${done} / ${total} completed)`;
+
+      const statusLabel = document.getElementById('progressStatusLabel');
+      if (state.isProcessing) {
+        statusLabel.textContent = `Processing batch (${state.concurrency}x parallel)...`;
+      } else if (total === 0) {
+        statusLabel.textContent = 'Ready to process files';
+      } else if (done === total) {
+        statusLabel.textContent = 'All files processed & ready for Adobe Stock CSV export!';
+      } else {
+        statusLabel.textContent = `${done} ready, ${pending} pending, ${failed} failed`;
+      }
+      updateAnalyticsDashboard();
+    }
+
+    function renderWorkspace() {
+      updateStatsAndProgress();
+      const emptyEl = document.getElementById('emptyWorkspaceState');
+      const gridEl = document.getElementById('itemsGridContainer');
+
+      if (state.files.length === 0) {
+        emptyEl.classList.remove('hidden');
+        gridEl.innerHTML = '';
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      const filtered = state.files.filter(item => {
+        if (!state.searchQuery) return true;
+        const hay = `${item.name} ${item.title} ${item.keywords.join(' ')}`.toLowerCase();
+        return hay.includes(state.searchQuery);
+      });
+
+      gridEl.innerHTML = '';
+      filtered.forEach(item => {
+        const card = createCardElement(item);
+        gridEl.appendChild(card);
+      });
+    }
+
+    function updateSingleCardDOM(item) {
+      const existing = document.getElementById(`card-${item.id}`);
+      if (!existing) return;
+      const replacement = createCardElement(item);
+      existing.replaceWith(replacement);
+    }
+
+    function syncFileFormatSelects(val, notify = false) {
+      ['headerFileFormatSelect', 'toolbarFileFormatSelect', 'csvExtensionSelect'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+      });
+      saveLocal('pixcraft_file_format', val);
+      renderWorkspace();
+      if (notify) {
+        showToast(val === 'keep' ? 'File format: Original extensions kept' : `File format set to ${val} for all files!`, 'success');
+      }
+    }
+
+    function getCsvFilenameForItem(item) {
+      const override = document.getElementById('csvExtensionSelect').value;
+      if (!override || override === 'keep') return item.name;
+      const base = item.name.replace(/\.[^.]+$/, '');
+      return base + override;
+    }
+
+    function createCardElement(item) {
+      const card = document.createElement('div');
+      card.id = `card-${item.id}`;
+      card.className = 'bg-[#0d1322] border border-slate-800/90 rounded-2xl p-4 transition hover:border-slate-700/80';
+
+      const wordCount = item.title ? item.title.trim().split(/\s+/).filter(Boolean).length : 0;
+      const charCount = item.title ? item.title.length : 0;
+      const kwCount = item.keywords.length;
+      item.qualityScore = computeItemQualityScore(item);
+      const titleCheck = validateItemTitle(item);
+      const ia = item.imageAnalysis || {};
+
+      let statusBadgeHtml = '';
+      if (item.status === 'done') {
+        statusBadgeHtml = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Ready • ${item.qualityScore}% Quality</span>`;
+      } else if (item.status === 'processing') {
+        statusBadgeHtml = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 animate-pulse">Generating AI...</span>`;
+      } else if (item.status === 'error') {
+        statusBadgeHtml = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40">Failed</span>`;
+      } else {
+        statusBadgeHtml = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-400">Queued</span>`;
+      }
+
+      const categoryOptionsHtml = ADOBE_CATEGORIES.map(c =>
+        `<option value="${c.id}" ${Number(item.category) === c.id ? 'selected' : ''} class="bg-slate-900">${escapeHtml(c.name)}</option>`
+      ).join('');
+
+      // Stage 1: Image Preview Analysis Swatches & Resolution Badge
+      const colorSwatchesHtml = (ia.dominantColors || []).map(hex =>
+        `<span class="w-3.5 h-3.5 rounded-full border border-white/20 inline-block" style="background-color:${escapeHtml(hex)}" title="Dominant Color: ${escapeHtml(hex)}"></span>`
+      ).join('');
+
+      // Stage 1: Keyword Ranking Pills (Top 10 highlighted in emerald/indigo with 1-click Promote ↑)
+      const keywordPillsHtml = item.keywords.map((kw, idx) => {
+        const isTop10 = idx < 10;
+        const pillStyle = isTop10
+          ? 'bg-indigo-950/80 border-indigo-500/50 text-indigo-100'
+          : 'bg-slate-900 border-slate-800 text-slate-200';
+        return `
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border ${pillStyle} hover:border-indigo-400 transition">
+          <span class="text-[10px] ${isTop10 ? 'text-amber-300 font-bold' : 'text-slate-500'} font-mono">${idx + 1}.</span>
+          <span>${escapeHtml(kw)}</span>
+          ${idx > 0 ? `<button type="button" data-action="promote-kw" data-idx="${idx}" class="text-slate-400 hover:text-emerald-300 ml-0.5 text-[10px]" title="Promote keyword rank to #1 (Top SEO priority)">↑</button>` : ''}
+          <button type="button" data-action="remove-kw" data-idx="${idx}" class="text-slate-500 hover:text-rose-400 ml-0.5" title="Remove keyword">&times;</button>
+        </span>`;
+      }).join('');
+
+      // Official Structured JSON Output matching the user's schema + stock metadata
+      const itemStructuredJson = JSON.stringify({
+        filename: getCsvFilenameForItem(item),
+        sourceFile: item.name,
+        platform: state.platform,
+        title: item.title,
+        description: item.description,
+        keywords: item.keywords,
+        category: item.category,
+        image_summary: item.imageSummary,
+        main_subject: item.mainSubject,
+        supporting_objects: item.supportingObjects,
+        visual_style: item.visualStyle,
+        composition: item.compositionDetail,
+        color_palette: item.colorPaletteDesc?.length ? item.colorPaletteDesc : (ia.dominantColors || []),
+        background_and_negative_space: item.backgroundDetail,
+        lighting_and_rendering: item.lightingAndRendering,
+        output_requirements: item.outputRequirements,
+        prompt: item.imagePrompt,
+        midjourney_prompt: item.midjourneyPrompt,
+        negative_prompt: item.negativePrompt ? item.negativePrompt.split(',').map(s => s.trim()).filter(Boolean) : [],
+        alternative_prompts: item.alternativePrompts || [],
+        originality_changes: item.originalityChanges || [],
+        review_flags: item.reviewFlags || [],
+        qualityScore: item.qualityScore,
+        promptCompleteness: item.promptCompleteness || 0,
+        tokensUsed: item.tokensUsed || 0
+      }, null, 2);
+
+      const titleBadgeColor = titleCheck.color === 'emerald'
+        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+        : titleCheck.color === 'amber'
+          ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+          : 'bg-slate-900 text-slate-400 border-slate-800';
+
+      card.innerHTML = `
+        <div class="flex flex-col lg:flex-row gap-4">
+          <!-- Left Thumbnail & Stage 1 Image Preview Analysis Column -->
+          <div class="w-full lg:w-56 shrink-0 flex flex-col justify-between bg-slate-950/70 border border-slate-800/80 rounded-xl p-2.5">
+            <div>
+              <div class="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-slate-900 mb-2 flex items-center justify-center">
+                <img src="${item.previewUrl}" alt="${escapeHtml(item.name)}" class="max-w-full max-h-full object-contain" />
+                <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-black/70 text-slate-200 backdrop-blur-sm">${escapeHtml(item.mediaType)}</span>
+                ${item.latencyMs ? `<span class="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded text-[10px] font-mono bg-black/75 text-emerald-300">${item.latencyMs}ms</span>` : ''}
+              </div>
+              <p class="text-xs font-bold text-indigo-300 truncate" title="${escapeHtml(getCsvFilenameForItem(item))}">${escapeHtml(getCsvFilenameForItem(item))}</p>
+              <p class="text-[10px] text-slate-500 truncate">Source: ${escapeHtml(item.name)}</p>
+
+              <!-- Stage 1: Image Preview Analysis Box -->
+              <div class="mt-2 p-2 rounded-lg bg-slate-900/90 border border-slate-800/90 text-[10px] text-slate-300 space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400 font-semibold">Preview Analysis:</span>
+                  <span class="font-mono text-indigo-300">${ia.width ? `${ia.width}×${ia.height}` : 'Vector'}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400">${escapeHtml(ia.orientation || 'Standard')}</span>
+                  <span class="text-slate-400">${ia.avgBrightness ? `${ia.avgBrightness}% Lum` : ''}</span>
+                </div>
+                <div class="flex items-center justify-between pt-0.5">
+                  <span class="text-slate-400">Palette:</span>
+                  <div class="flex items-center gap-1">${colorSwatchesHtml}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80 space-y-2">
+              <div class="flex items-center justify-between">
+                ${statusBadgeHtml}
+                <div class="flex items-center gap-1">
+                  <button type="button" data-action="toggle-json" class="px-1.5 py-1 rounded-lg bg-slate-900 hover:bg-indigo-600/30 text-[10px] font-mono font-bold text-indigo-300 border border-slate-800 transition" title="View / Copy Structured JSON Output">{JSON}</button>
+                  <button type="button" data-action="regenerate-one" class="p-1.5 rounded-lg bg-slate-900 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-300 border border-slate-800 transition" title="Regenerate this file">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                  </button>
+                  <button type="button" data-action="delete-one" class="p-1.5 rounded-lg bg-slate-900 hover:bg-rose-600/30 text-slate-400 hover:text-rose-300 border border-slate-800 transition" title="Remove file">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              ${item.errorMsg ? `<p class="text-[11px] text-rose-400 bg-rose-950/50 border border-rose-500/30 rounded p-1.5">${escapeHtml(item.errorMsg)}</p>` : ''}
+
+              <div>
+                <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Adobe Stock Category</label>
+                <select data-action="category-select" class="w-full rounded-lg bg-slate-900 border border-slate-800 px-2 py-1 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none">
+                  ${categoryOptionsHtml}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Metadata & Image-to-Prompt Editor Column -->
+          <div class="flex-1 space-y-3">
+
+            <!-- IMAGE-TO-PROMPT STUDIO SECTION (WITH DEEP ANALYSIS, 7-SECTION BUILDER, 2 ORIGINAL VARIATIONS & IP REVIEW FLAGS) -->
+            <div data-role="prompt-section" class="${state.workMode === 'metadata' ? 'hidden' : ''} rounded-xl bg-gradient-to-r from-pink-950/25 via-slate-950/90 to-indigo-950/25 border border-pink-500/30 p-3.5 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-pink-500/20 text-pink-300 border border-pink-500/30">🎨 Image-to-Prompt Studio</span>
+                  <span class="text-[11px] text-slate-300 font-medium">${escapeHtml(item.styleBreakdown || 'Deep Visual Analysis + Original Concept Variations')}</span>
+                  ${item.promptCompleteness ? `<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold">${item.promptCompleteness}% Complete (7/7 Builder)</span>` : ''}
+                  ${(item.reviewFlags && item.reviewFlags.length > 0)
+                    ? `<span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">⚠️ ${item.reviewFlags.length} Review Flag(s)</span>`
+                    : (item.imagePrompt ? `<span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">✓ IP &amp; Originality Checked</span>` : '')}
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <button type="button" data-action="toggle-prompt-builder" class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-900 hover:bg-slate-800 text-pink-300 border border-pink-500/30 transition" title="View 7-Section Prompt Detail Builder, Alternative Variations & Originality Check">
+                    🔍 Deep Analysis &amp; Variations (${(item.alternativePrompts && item.alternativePrompts.length) || 0})
+                  </button>
+                  <button type="button" data-action="copy-img-prompt" class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-pink-600 hover:bg-pink-500 text-white shadow-sm transition">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Copy Main Prompt</span>
+                  </button>
+                  <button type="button" data-action="copy-mj-prompt" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white border border-indigo-500/40 transition">
+                    Copy /imagine (MJ)
+                  </button>
+                  <button type="button" data-action="copy-neg-prompt" class="px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition">
+                    Copy Negative
+                  </button>
+                </div>
+              </div>
+
+              <!-- Main Recommended Generation Prompt -->
+              <div>
+                <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Recommended Generation Prompt (Firefly / Google Flow / Midjourney / Flux)</label>
+                <textarea rows="2" data-action="edit-img-prompt" placeholder="AI reverse-engineered Image-to-Prompt will appear here (Subject, Composition, Style, Color Palette, Background, Lighting & Rendering, Output Requirements)..." class="w-full rounded-xl bg-slate-950/95 border border-slate-800 px-3 py-1.5 text-xs text-pink-100 placeholder-slate-600 focus:border-pink-500 focus:outline-none">${escapeHtml(item.imagePrompt)}</textarea>
+              </div>
+
+              <!-- Midjourney Command & Negative Prompt Row -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Ready Command (--ar &amp; Parameter Suffix)</label>
+                  <input type="text" data-action="edit-mj-prompt" value="${escapeHtml(item.midjourneyPrompt)}" placeholder="/imagine prompt: ... --ar 16:9 --v 6.1" class="w-full rounded-lg bg-slate-950 border border-slate-800 px-2.5 py-1.5 text-[11px] font-mono text-indigo-200 placeholder-slate-600 focus:border-indigo-500 focus:outline-none" />
+                </div>
+                <div class="${document.getElementById('toggleNegativePrompt')?.checked === false ? 'hidden' : ''}">
+                  <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Negative Prompt (Target-Customized)</label>
+                  <input type="text" data-action="edit-neg-prompt" value="${escapeHtml(item.negativePrompt)}" placeholder="unwanted text, watermark, signature, cluttered composition..." class="w-full rounded-lg bg-slate-950 border border-slate-800 px-2.5 py-1.5 text-[11px] text-slate-300 placeholder-slate-600 focus:border-pink-500 focus:outline-none" />
+                </div>
+              </div>
+
+              <!-- Review Flags Alert (If any IP / Contradiction / Uncertainty flags exist) -->
+              ${(item.reviewFlags && item.reviewFlags.length > 0) ? `
+                <div class="p-2.5 rounded-xl bg-amber-950/50 border border-amber-500/40 text-[11px] text-amber-200 space-y-1">
+                  <div class="font-bold text-amber-300">⚠️ Human Review Flags (IP / Originality / Uncertainty Check):</div>
+                  ${item.reviewFlags.map(fl => `<div>• ${escapeHtml(fl)}</div>`).join('')}
+                </div>
+              ` : ''}
+
+              <!-- Collapsible Deep Visual Analysis, 7-Section Prompt Builder, 2 Alternative Concept Variations & Originality Improvements -->
+              <div data-role="prompt-builder-drawer" class="${(item.alternativePrompts && item.alternativePrompts.length > 0) ? '' : 'hidden'} pt-2.5 border-t border-slate-800/90 space-y-3 text-xs">
+                <!-- Feature 1 & 2: 7-Section Prompt Detail Builder -->
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-300 block mb-1.5">7-Section Deep Image Understanding &amp; Prompt Detail Builder</span>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-[11px]">
+                    <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+                      <span class="text-slate-400 font-semibold block">1. Subject &amp; Objects:</span>
+                      <span class="text-slate-200">${escapeHtml(item.mainSubject || 'Pending analysis...')} ${item.supportingObjects ? '• ' + escapeHtml(item.supportingObjects) : ''}</span>
+                    </div>
+                    <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+                      <span class="text-slate-400 font-semibold block">2. Composition &amp; Hierarchy:</span>
+                      <span class="text-slate-200">${escapeHtml(item.compositionDetail || ia.orientation || 'Pending...')}</span>
+                    </div>
+                    <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+                      <span class="text-slate-400 font-semibold block">3. Style &amp; Medium:</span>
+                      <span class="text-slate-200">${escapeHtml(item.visualStyle || item.mediaType)}</span>
+                    </div>
+                    <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+                      <span class="text-slate-400 font-semibold block">4. Color Palette:</span>
+                      <span class="text-slate-200">${escapeHtml((item.colorPaletteDesc && item.colorPaletteDesc.length ? item.colorPaletteDesc : (ia.dominantColors || [])).join(', ') || 'Auto RGB')}</span>
+                    </div>
+                    <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+                      <span class="text-slate-400 font-semibold block">5. Background &amp; Copy Space:</span>
+                      <span class="text-slate-200">${escapeHtml(item.backgroundDetail || 'Standard background')}</span>
+                    </div>
+                    <div class="p-2 rounded-lg bg-slate-950 border border-slate-800">
+                      <span class="text-slate-400 font-semibold block">6. Lighting &amp; Rendering:</span>
+                      <span class="text-slate-200">${escapeHtml(item.lightingAndRendering || ia.lighting || 'Balanced')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Feature 3: 2 Alternative Original Concept Variations -->
+                ${(item.alternativePrompts && item.alternativePrompts.length > 0) ? `
+                  <div class="space-y-2">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-pink-300 block">Original Concept Variations (Meaningfully Distinct Compositions for Adobe Stock)</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      ${item.alternativePrompts.map((altP, aIdx) => `
+                        <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between gap-2">
+                          <div class="text-[11px] text-slate-200 leading-relaxed">
+                            <span class="font-bold text-pink-400 mr-1">Variation #${aIdx + 1}:</span>${escapeHtml(altP)}
+                          </div>
+                          <div class="flex items-center justify-end gap-1.5 pt-1 border-t border-slate-900">
+                            <button type="button" data-action="copy-alt-prompt" data-alt-idx="${aIdx}" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-200">Copy Variation</button>
+                            <button type="button" data-action="use-alt-prompt" data-alt-idx="${aIdx}" class="px-2 py-0.5 rounded bg-pink-600/30 hover:bg-pink-600 text-[10px] text-pink-200 hover:text-white font-semibold">Set as Main</button>
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+
+                <!-- Feature 6: Originality Changes Summary + User Feedback Logger -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <div class="text-[11px] text-emerald-300">
+                    ${(item.originalityChanges && item.originalityChanges.length > 0)
+                      ? `<strong>Originality Improvements:</strong> ${escapeHtml(item.originalityChanges.join(' • '))}`
+                      : `<span>Tip: Generate in "Original Variation" mode to see Adobe Stock originality improvements.</span>`}
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <select data-role="feedback-reason-select" class="rounded-lg bg-slate-950 border border-slate-800 px-2 py-1 text-[10px] text-slate-300">
+                      <option value="">Log Prompt Edit Reason (Feedback)...</option>
+                      <option value="Improved subject accuracy">Improved subject accuracy</option>
+                      <option value="Increased originality for Adobe Stock">Increased originality for Adobe Stock</option>
+                      <option value="Adjusted lighting / color palette">Adjusted lighting / color palette</option>
+                      <option value="Removed unwanted object / IP">Removed unwanted object / IP</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STOCK METADATA SECTION -->
+            <div data-role="metadata-section" class="${state.workMode === 'prompt' ? 'hidden' : ''} space-y-3">
+            <!-- Title Row + Stage 1 Title Validation Badge -->
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Adobe Stock Title</span>
+                  <span data-role="title-counter" class="text-[11px] px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">${wordCount} words • ${charCount}/200 chars</span>
+                  <span data-role="title-valid-badge" class="text-[10px] px-2 py-0.5 rounded border font-semibold ${titleBadgeColor}">${escapeHtml(titleCheck.status)}</span>
+                </div>
+                <button type="button" data-action="copy-title" class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-900 hover:bg-indigo-600 text-slate-200 hover:text-white border border-slate-800 transition">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  <span>Copy Title</span>
+                </button>
+              </div>
+              <input type="text" data-action="edit-title" value="${escapeHtml(item.title)}" placeholder="AI generated commercial title will appear here..." class="w-full rounded-xl bg-slate-950/90 border border-slate-800 px-3 py-2 text-xs sm:text-sm text-white placeholder-slate-600 focus:border-indigo-500 focus:outline-none" />
+            </div>
+
+            <!-- Description Row -->
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">SEO Description</span>
+                <button type="button" data-action="copy-desc" class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition">
+                  <span>Copy Description</span>
+                </button>
+              </div>
+              <textarea rows="2" data-action="edit-desc" placeholder="Detailed description..." class="w-full rounded-xl bg-slate-950/90 border border-slate-800 px-3 py-1.5 text-xs text-slate-300 placeholder-slate-600 focus:border-indigo-500 focus:outline-none">${escapeHtml(item.description)}</textarea>
+            </div>
+
+            <!-- Keywords Section with Top-10 Ranking & Duplicate Removal -->
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Keywords</span>
+                  <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-semibold">${kwCount} / 49 tags</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">Top 1–10 Ranked First (Click ↑ to promote)</span>
+                  ${item.duplicatesRemoved ? `<span class="text-[10px] text-emerald-400">${item.duplicatesRemoved} dups removed</span>` : ''}
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <button type="button" data-action="rerank-dedup-kws" class="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-slate-800 transition" title="Re-rank Top 10 keywords by title relevance & strip duplicates">
+                    Rank &amp; Dedup
+                  </button>
+                  <button type="button" data-action="copy-keywords" class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 transition">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Copy All Keywords (CSV)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Interactive Keyword Pills Box -->
+              <div class="min-h-[68px] rounded-xl bg-slate-950/90 border border-slate-800 p-2.5 flex flex-wrap gap-1.5 items-center">
+                ${keywordPillsHtml || '<span class="text-xs text-slate-600">Keywords will be generated ranked by Adobe Stock search importance...</span>'}
+              </div>
+
+              <!-- Add custom keyword or edit raw comma list -->
+              <div class="mt-2 flex gap-2">
+                <input type="text" data-role="add-kw-input" placeholder="Add custom keyword(s) separated by comma and press Enter..." class="flex-1 rounded-xl bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+                <button type="button" data-action="add-kw-btn" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">+ Add</button>
+              </div>
+            </div>
+
+            </div><!-- End STOCK METADATA SECTION -->
+
+            <!-- Stage 1: Collapsible Structured JSON Output Viewer -->
+            <div data-role="json-drawer" class="hidden pt-2 border-t border-slate-800">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[11px] font-bold uppercase text-indigo-300">Structured JSON Output</span>
+                <button type="button" data-action="copy-json" class="px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600 text-[11px] text-indigo-200 hover:text-white transition">Copy JSON</button>
+              </div>
+              <pre class="max-h-40 overflow-y-auto rounded-xl bg-slate-950 border border-slate-800 p-2.5 text-[11px] font-mono text-emerald-300">${escapeHtml(itemStructuredJson)}</pre>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Attach listeners for this card
+      card.querySelector('[data-action="regenerate-one"]').addEventListener('click', () => {
+        startBatchProcessing(item.id);
+      });
+
+      card.querySelector('[data-action="delete-one"]').addEventListener('click', () => {
+        state.files = state.files.filter(f => f.id !== item.id);
+        renderWorkspace();
+      });
+
+      card.querySelector('[data-action="toggle-json"]').addEventListener('click', () => {
+        card.querySelector('[data-role="json-drawer"]').classList.toggle('hidden');
+      });
+
+      card.querySelector('[data-action="copy-json"]').addEventListener('click', () => {
+        copyTextToClipboard(itemStructuredJson, 'Structured JSON copied!');
+      });
+
+      card.querySelector('[data-action="category-select"]').addEventListener('change', (e) => {
+        const oldCat = item.category;
+        item.category = parseInt(e.target.value, 10) || 8;
+        recordCorrectionHistory(item, 'category', oldCat, item.category);
+      });
+
+      const titleInput = card.querySelector('[data-action="edit-title"]');
+      const titleCounter = card.querySelector('[data-role="title-counter"]');
+      const titleValidBadge = card.querySelector('[data-role="title-valid-badge"]');
+      let prevTitleSnap = item.title;
+      titleInput.addEventListener('focus', () => { prevTitleSnap = item.title; });
+      titleInput.addEventListener('input', (e) => {
+        item.title = e.target.value;
+        const wc = item.title.trim() ? item.title.trim().split(/\s+/).length : 0;
+        titleCounter.textContent = `${wc} words • ${item.title.length}/200 chars`;
+        const check = validateItemTitle(item);
+        titleValidBadge.textContent = check.status;
+      });
+      titleInput.addEventListener('change', () => {
+        recordCorrectionHistory(item, 'title', prevTitleSnap, item.title);
+      });
+
+      const descInput = card.querySelector('[data-action="edit-desc"]');
+      let prevDescSnap = item.description;
+      descInput.addEventListener('focus', () => { prevDescSnap = item.description; });
+      descInput.addEventListener('input', (e) => {
+        item.description = e.target.value;
+      });
+      descInput.addEventListener('change', () => {
+        recordCorrectionHistory(item, 'description', prevDescSnap, item.description);
+      });
+
+      // Image-to-Prompt inputs & copy buttons
+      const imgPromptInput = card.querySelector('[data-action="edit-img-prompt"]');
+      if (imgPromptInput) {
+        let prevPromptSnap = item.imagePrompt;
+        imgPromptInput.addEventListener('focus', () => { prevPromptSnap = item.imagePrompt; });
+        imgPromptInput.addEventListener('input', (e) => { item.imagePrompt = e.target.value; });
+        imgPromptInput.addEventListener('change', () => {
+          recordCorrectionHistory(item, 'imagePrompt', prevPromptSnap, item.imagePrompt);
+        });
+      }
+
+      const mjPromptInput = card.querySelector('[data-action="edit-mj-prompt"]');
+      if (mjPromptInput) {
+        mjPromptInput.addEventListener('input', (e) => { item.midjourneyPrompt = e.target.value; });
+      }
+
+      const negPromptInput = card.querySelector('[data-action="edit-neg-prompt"]');
+      if (negPromptInput) {
+        negPromptInput.addEventListener('input', (e) => { item.negativePrompt = e.target.value; });
+      }
+
+      card.querySelector('[data-action="copy-img-prompt"]').addEventListener('click', () => {
+        const p = item.imagePrompt || item.midjourneyPrompt;
+        if (!p) return showToast('Generate prompt first!', 'info');
+        copyTextToClipboard(p, 'Image-to-Prompt copied!');
+      });
+
+      card.querySelector('[data-action="copy-mj-prompt"]').addEventListener('click', () => {
+        const mj = item.midjourneyPrompt || item.imagePrompt;
+        if (!mj) return showToast('Generate prompt first!', 'info');
+        const cmd = mj.startsWith('/imagine') ? mj : `/imagine prompt: ${mj}`;
+        copyTextToClipboard(cmd, 'Midjourney /imagine command copied!');
+      });
+
+      card.querySelector('[data-action="copy-neg-prompt"]').addEventListener('click', () => {
+        if (!item.negativePrompt) return showToast('No negative prompt yet', 'info');
+        copyTextToClipboard(item.negativePrompt, 'Negative prompt copied!');
+      });
+
+      const toggleBuilderBtn = card.querySelector('[data-action="toggle-prompt-builder"]');
+      if (toggleBuilderBtn) {
+        toggleBuilderBtn.addEventListener('click', () => {
+          card.querySelector('[data-role="prompt-builder-drawer"]').classList.toggle('hidden');
+        });
+      }
+
+      card.querySelectorAll('[data-action="copy-alt-prompt"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-alt-idx'), 10);
+          const altText = item.alternativePrompts?.[idx];
+          if (altText) copyTextToClipboard(altText, `Concept Variation #${idx + 1} copied!`);
+        });
+      });
+
+      card.querySelectorAll('[data-action="use-alt-prompt"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-alt-idx'), 10);
+          const altText = item.alternativePrompts?.[idx];
+          if (altText) {
+            const oldMain = item.imagePrompt;
+            item.imagePrompt = altText;
+            recordCorrectionHistory(item, `imagePrompt (switched to Variation #${idx + 1})`, oldMain, altText);
+            updateSingleCardDOM(item);
+            showToast(`Variation #${idx + 1} set as Main Prompt!`, 'success');
+          }
+        });
+      });
+
+      const feedbackSel = card.querySelector('[data-role="feedback-reason-select"]');
+      if (feedbackSel) {
+        feedbackSel.addEventListener('change', (e) => {
+          const reason = e.target.value;
+          if (!reason) return;
+          item.feedbackNote = reason;
+          recordCorrectionHistory(item, `Prompt Feedback: ${reason}`, 'AI Draft', 'User Reviewed');
+          showToast(`Logged feedback: ${reason}`, 'info');
+          e.target.value = '';
+        });
+      }
+
+      card.querySelector('[data-action="copy-title"]').addEventListener('click', () => {
+        if (!item.title) return showToast('No title to copy yet', 'info');
+        copyTextToClipboard(item.title, 'Title copied!');
+      });
+
+      card.querySelector('[data-action="copy-desc"]').addEventListener('click', () => {
+        if (!item.description) return showToast('No description to copy yet', 'info');
+        copyTextToClipboard(item.description, 'Description copied!');
+      });
+
+      card.querySelector('[data-action="copy-keywords"]').addEventListener('click', () => {
+        if (!item.keywords.length) return showToast('No keywords to copy yet', 'info');
+        copyTextToClipboard(item.keywords.join(', '), `${item.keywords.length} keywords copied!`);
+      });
+
+      // Re-rank & Deduplicate button
+      card.querySelector('[data-action="rerank-dedup-kws"]').addEventListener('click', () => {
+        const oldKws = [...item.keywords];
+        const singleWordOnly = document.getElementById('toggleSingleWord').checked;
+        const useProhibited = document.getElementById('toggleProhibitedWords').checked;
+        const prohibitedList = useProhibited
+          ? document.getElementById('prohibitedWordsInput').value.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+          : [];
+        const maxKw = Math.min(49, parseInt(document.getElementById('maxKeywords').value, 10) || 45);
+        const res = deduplicateAndRankKeywords(item.keywords, item.title, singleWordOnly, prohibitedList, maxKw);
+        item.keywords = res.keywords;
+        item.duplicatesRemoved = (item.duplicatesRemoved || 0) + res.duplicatesRemoved;
+        recordCorrectionHistory(item, 'keywords (rank & dedup)', oldKws, item.keywords);
+        updateSingleCardDOM(item);
+        showToast(`Keywords ranked & deduplicated (${res.duplicatesRemoved} removed)!`, 'success');
+      });
+
+      // Promote keyword to #1 Rank
+      card.querySelectorAll('[data-action="promote-kw"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-idx'), 10);
+          if (idx > 0 && idx < item.keywords.length) {
+            const oldKws = [...item.keywords];
+            const [picked] = item.keywords.splice(idx, 1);
+            item.keywords.unshift(picked);
+            recordCorrectionHistory(item, `keywords (promoted "${picked}" to #1)`, oldKws, item.keywords);
+            updateSingleCardDOM(item);
+          }
+        });
+      });
+
+      // Remove keyword pill
+      card.querySelectorAll('[data-action="remove-kw"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-idx'), 10);
+          const oldKws = [...item.keywords];
+          const removed = item.keywords[idx];
+          item.keywords.splice(idx, 1);
+          recordCorrectionHistory(item, `keywords (removed "${removed}")`, oldKws, item.keywords);
+          updateSingleCardDOM(item);
+        });
+      });
+
+      // Add keyword input & button
+      const addKwInput = card.querySelector('[data-role="add-kw-input"]');
+      const triggerAddKw = () => {
+        const raw = addKwInput.value.trim();
+        if (!raw) return;
+        const oldKws = [...item.keywords];
+        const parts = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+        parts.forEach(p => {
+          if (!item.keywords.includes(p) && item.keywords.length < 49) {
+            item.keywords.push(p);
+          }
+        });
+        addKwInput.value = '';
+        recordCorrectionHistory(item, 'keywords (added custom)', oldKws, item.keywords);
+        updateSingleCardDOM(item);
+      };
+
+      card.querySelector('[data-action="add-kw-btn"]').addEventListener('click', triggerAddKw);
+      addKwInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          triggerAddKw();
+        }
+      });
+
+      return card;
+    }
+
+    // =========================================================================
+    // CSV EXPORT ENGINE (ADOBE STOCK OFFICIAL & MULTI-PLATFORM)
+    // =========================================================================
+    function escapeCsvCell(val) {
+      const str = String(val ?? '').replace(/\r?\n/g, ' ').trim();
+      if (str.includes(',') || str.includes('"') || str.includes(';')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    }
+
+    function exportPlatformCsv() {
+      const readyItems = state.files.filter(f => f.title || f.keywords.length > 0);
+      if (readyItems.length === 0) {
+        showToast('Generate metadata for at least 1 file before downloading CSV!', 'error');
+        return;
+      }
+
+      let headers = [];
+      let rows = [];
+
+      if (state.platform === 'AdobeStock') {
+        // Official Adobe Stock Contributor CSV Header
+        headers = ['Filename', 'Title', 'Keywords', 'Category', 'Releases'];
+        rows = readyItems.map(item => [
+          escapeCsvCell(getCsvFilenameForItem(item)),
+          escapeCsvCell(item.title),
+          escapeCsvCell(item.keywords.join(', ')),
+          escapeCsvCell(item.category || 8),
+          escapeCsvCell(item.releases || '')
+        ]);
+      } else if (state.platform === 'Shutterstock') {
+        headers = ['Filename', 'Description', 'Keywords', 'Categories'];
+        rows = readyItems.map(item => [
+          escapeCsvCell(getCsvFilenameForItem(item)),
+          escapeCsvCell(item.description || item.title),
+          escapeCsvCell(item.keywords.join(', ')),
+          escapeCsvCell('Objects')
+        ]);
+      } else if (state.platform === 'Freepik') {
+        headers = ['Filename', 'Title', 'Keywords'];
+        rows = readyItems.map(item => [
+          escapeCsvCell(getCsvFilenameForItem(item)),
+          escapeCsvCell(item.title),
+          escapeCsvCell(item.keywords.join(', '))
+        ]);
+      } else {
+        headers = ['Filename', 'Title', 'Description', 'Keywords', 'Category'];
+        rows = readyItems.map(item => [
+          escapeCsvCell(getCsvFilenameForItem(item)),
+          escapeCsvCell(item.title),
+          escapeCsvCell(item.description),
+          escapeCsvCell(item.keywords.join(', ')),
+          escapeCsvCell(item.category || 8)
+        ]);
+      }
+
+      // UTF-8 BOM + CSV rows so Excel & Adobe Stock read special characters cleanly
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      const dateStr = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `${state.platform}_Metadata_${readyItems.length}_files_${dateStr}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      showToast(`Downloaded ${state.platform} CSV with ${readyItems.length} file(s)!`, 'success');
+    }
+
+    // Boot application
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
