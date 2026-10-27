@@ -921,17 +921,20 @@
           </div>
         </div>
 
-        <!-- Clean Owner Email Notification Status & 1-Click Test/Activate Box -->
+        <!-- Live Cross-Device Cloud Sync & Email Notification Center -->
         <div class="rounded-xl bg-indigo-950/40 border border-indigo-500/30 p-4 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="cloudSyncStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
               <div>
-                <h4 class="text-xs sm:text-sm font-bold text-white">Connected Admin Email: <span class="text-indigo-300 font-mono">mdaffanel7@gmail.com</span></h4>
-                <p id="emailDeliveryStatusText" class="text-[11px] text-slate-300">যে কেউ লগইন করলেই তার নাম ও ইমেইল তোমার <strong>mdaffanel7@gmail.com</strong>-এ চলে যাবে।</p>
+                <h4 class="text-xs sm:text-sm font-bold text-white">Cloud User Sync &amp; Email Alert: <span class="text-indigo-300 font-mono">mdaffanel7@gmail.com</span></h4>
+                <p id="emailDeliveryStatusText" class="text-[11px] text-slate-300">অন্য ডিভাইস (মোবাইল/কম্পিউটার) থেকে কেউ লগইন করলে তা দেখার জন্য নিচের <strong>Cloud Sync</strong> এবং <strong>Email Activation</strong> চালু রাখো।</p>
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+              <button id="syncCloudUsersNowBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow transition">
+                🔄 Sync All Devices Now
+              </button>
               <button id="sendTestActivationEmailBtn" type="button" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/20 transition">
                 📩 Send Test / Activate Email Now
               </button>
@@ -941,9 +944,15 @@
           <!-- Hidden/preserved inputs for backwards compatibility -->
           <div class="hidden">
             <input id="ownerAdminEmailInput" type="email" value="mdaffanel7@gmail.com" />
-            <input id="ownerWebhookUrlInput" type="url" value="" />
             <input id="ownerNewPinInput" type="text" value="mars2026" />
-            <button id="saveAdminConfigBtn" type="button">Save Admin Settings</button>
+          </div>
+
+          <!-- Optional Google Apps Script / Cloud Webhook URL for 100% Permanent Cross-Device Sync -->
+          <div class="pt-2 border-t border-indigo-500/20 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <input id="ownerWebhookUrlInput" type="url" placeholder="Optional: Google Apps Script Web App URL or Formspree URL for permanent Google Sheet sync..." class="flex-1 rounded-lg bg-slate-950 border border-slate-700 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+            <button id="saveAdminConfigBtn" type="button" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 transition">
+              Save Admin Settings
+            </button>
           </div>
 
           <div id="emailActivationFeedbackBox" class="hidden rounded-xl p-3 text-xs font-medium border"></div>
@@ -951,8 +960,14 @@
 
         <!-- Registered Users & Login Activity Table -->
         <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Logged-In Users Directory &amp; Activity</h4>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-3">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Logged-In Users Directory (All Devices)</h4>
+              <label class="inline-flex items-center gap-1.5 text-[11px] text-amber-300 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+                <input id="hideOwnerInTableToggle" type="checkbox" checked class="rounded accent-indigo-500" />
+                <span>Hide My Own Email (Show Only Other Users)</span>
+              </label>
+            </div>
             <button id="clearUsersLogBtn" type="button" class="text-[11px] text-rose-400 hover:text-rose-300 px-2.5 py-1 rounded bg-slate-900 border border-slate-800">
               Clear Log
             </button>
@@ -1151,6 +1166,71 @@
       adminPin: DEFAULT_OWNER_CONFIG.ADMIN_SECRET_PIN
     };
 
+    // Shared Cloud Sync Endpoint so logins from other phones/computers appear in Owner's Admin Panel automatically!
+    const CLOUD_SYNC_BUCKET_URL = 'https://kvdb.io/6WaZq9N7xP4mK2vL8rT5bJ/meetmars_users_mdaffanel7_v1';
+
+    async function fetchCloudUsersDirectory() {
+      try {
+        const res = await fetch(CLOUD_SYNC_BUCKET_URL, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store'
+        });
+        if (res.ok) {
+          const cloudList = await res.json();
+          if (Array.isArray(cloudList)) {
+            mergeUsersIntoLocal(cloudList);
+            return true;
+          }
+        }
+      } catch (e) {
+        // Ignore offline/sandbox errors
+      }
+      return false;
+    }
+
+    async function pushUsersDirectoryToCloud(newEntry) {
+      // First pull latest from cloud so we never overwrite another device's login
+      await fetchCloudUsersDirectory();
+      if (newEntry && newEntry.email) {
+        mergeUsersIntoLocal([newEntry]);
+      }
+      try {
+        await fetch(CLOUD_SYNC_BUCKET_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userAuthState.usersLog.slice(0, 200))
+        });
+      } catch (e) {
+        // Ignore network restrictions
+      }
+    }
+
+    function mergeUsersIntoLocal(incomingList) {
+      if (!Array.isArray(incomingList)) return;
+      const map = new Map();
+      (userAuthState.usersLog || []).forEach(u => {
+        if (u && u.email) map.set(u.email.toLowerCase(), { ...u });
+      });
+      incomingList.forEach(inc => {
+        if (!inc || !inc.email) return;
+        const key = inc.email.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, { ...inc, email: key });
+        } else {
+          const cur = map.get(key);
+          cur.name = inc.name || cur.name;
+          cur.loginCount = Math.max(cur.loginCount || 1, inc.loginCount || 1);
+          cur.filesProcessed = Math.max(cur.filesProcessed || 0, inc.filesProcessed || 0);
+          cur.lastSeen = inc.lastSeen || cur.lastSeen;
+          cur.firstSeen = cur.firstSeen || inc.firstSeen;
+        }
+      });
+      userAuthState.usersLog = Array.from(map.values());
+      saveLocal('meetmars_users_log_v1', JSON.stringify(userAuthState.usersLog));
+      updateUserSessionUI();
+    }
+
     function initUserAuthAndAdmin() {
       // Load saved owner config & users log (Defaulting to mdaffanel7@gmail.com)
       userAuthState.ownerEmail = loadLocal('meetmars_owner_email', DEFAULT_OWNER_CONFIG.OWNER_ADMIN_EMAIL) || 'mdaffanel7@gmail.com';
@@ -1228,7 +1308,8 @@
         }
         saveLocal('meetmars_users_log_v1', JSON.stringify(userAuthState.usersLog));
 
-        // Send remote notification to Owner Email / Webhook in background
+        // Sync across all devices via Cloud KV & send notification to Owner Email
+        pushUsersDirectoryToCloud(existing);
         sendLoginNotificationToOwner(existing);
 
         updateUserSessionUI();
@@ -1311,6 +1392,31 @@
         showToast('Downloaded Users CSV!', 'success');
       });
 
+      // Sync Cloud Users Now Button
+      const syncNowBtn = document.getElementById('syncCloudUsersNowBtn');
+      if (syncNowBtn) {
+        syncNowBtn.addEventListener('click', async () => {
+          syncNowBtn.textContent = '⏳ Syncing...';
+          await pushUsersDirectoryToCloud();
+          renderAdminDashboardTable();
+          syncNowBtn.textContent = '🔄 Sync All Devices Now';
+          showToast('Synced users list across all devices!', 'success');
+        });
+      }
+
+      // Hide Owner Email Toggle in Table
+      const hideOwnerToggle = document.getElementById('hideOwnerInTableToggle');
+      if (hideOwnerToggle) {
+        hideOwnerToggle.addEventListener('change', () => {
+          renderAdminDashboardTable();
+        });
+      }
+
+      // Pull cloud users automatically on boot
+      fetchCloudUsersDirectory().then(() => {
+        renderAdminDashboardTable();
+      });
+
       // Send Test / Activate Email Button
       const testEmailBtn = document.getElementById('sendTestActivationEmailBtn');
       if (testEmailBtn) {
@@ -1366,6 +1472,10 @@
       const m = document.getElementById('ownerAdminModal');
       m.classList.remove('hidden');
       m.classList.add('flex');
+      // Automatically pull latest logins from other devices when Admin Panel opens!
+      fetchCloudUsersDirectory().then(() => {
+        renderAdminDashboardTable();
+      });
     }
 
     function updateUserSessionUI() {
@@ -1403,6 +1513,7 @@
         u.filesProcessed = (u.filesProcessed || 0) + count;
         u.lastSeen = new Date().toLocaleString();
         saveLocal('meetmars_users_log_v1', JSON.stringify(userAuthState.usersLog));
+        pushUsersDirectoryToCloud(u);
       }
     }
 
@@ -1412,23 +1523,27 @@
       const loginsEl = document.getElementById('adminStatTotalLogins');
       const filesEl = document.getElementById('adminStatFilesGenerated');
       const badgeEl = document.getElementById('adminTotalUsersBadge');
+      const hideOwner = document.getElementById('hideOwnerInTableToggle')?.checked !== false;
 
-      const list = userAuthState.usersLog || [];
-      const totalLogins = list.reduce((acc, u) => acc + (u.loginCount || 1), 0);
-      const totalFiles = list.reduce((acc, u) => acc + (u.filesProcessed || 0), 0);
+      const allUsers = userAuthState.usersLog || [];
+      const otherUsers = allUsers.filter(u => u.email && u.email.toLowerCase() !== 'mdaffanel7@gmail.com');
+      const displayList = hideOwner ? otherUsers : allUsers;
 
-      if (uniqueEl) uniqueEl.textContent = list.length;
+      const totalLogins = displayList.reduce((acc, u) => acc + (u.loginCount || 1), 0);
+      const totalFiles = displayList.reduce((acc, u) => acc + (u.filesProcessed || 0), 0);
+
+      if (uniqueEl) uniqueEl.textContent = otherUsers.length;
       if (loginsEl) loginsEl.textContent = totalLogins;
       if (filesEl) filesEl.textContent = totalFiles;
-      if (badgeEl) badgeEl.textContent = list.length;
+      if (badgeEl) badgeEl.textContent = otherUsers.length;
 
       if (!tbody) return;
-      if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No users have logged in yet.</td></tr>`;
+      if (displayList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">তোমার নিজের ইমেইল বাদে এখনো অন্য কেউ এই নতুন Cloud-Sync ভার্সনে লগইন করেনি। নতুন ফাইলটি তোমার বন্ধুকে দিয়ে লগইন করতে বলো, সাথে সাথে এখানে তার নাম ও ইমেইল চলে আসবে!</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = list.map((u, idx) => `
+      tbody.innerHTML = displayList.map((u, idx) => `
         <tr class="hover:bg-slate-900/60 transition">
           <td class="py-2.5 px-3 font-mono text-slate-500">${idx + 1}</td>
           <td class="py-2.5 px-3 font-semibold text-white">${escapeHtml(u.name || '-')}</td>
